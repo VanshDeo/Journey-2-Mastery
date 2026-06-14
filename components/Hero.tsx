@@ -1,0 +1,190 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Sakura from "./Sakura";
+import { ArrowRight } from "lucide-react";
+
+gsap.registerPlugin(ScrollTrigger);
+
+export default function Hero() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const welcomeRef = useRef<HTMLDivElement>(null);
+  const heroContentRef = useRef<HTMLDivElement>(null);
+  const textCharsRef = useRef<HTMLSpanElement[]>([]);
+  const gateRef = useRef<HTMLDivElement>(null);
+  const jpTextRef = useRef<HTMLDivElement>(null);
+  const enTextRef = useRef<HTMLDivElement>(null);
+  
+  const [introDone, setIntroDone] = useState(false);
+
+  useEffect(() => {
+    // Intro sequence tied to scroll
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top top",
+        end: "+=2000", // Pins for 2000px of scrolling
+        pin: true,
+        scrub: 1, // Smooth scrubbing makes it reversible
+      }
+    });
+
+    // 1. Welcome text fades out
+    tl.to(welcomeRef.current, {
+      autoAlpha: 0,
+      scale: 1.05,
+      filter: "blur(10px)",
+      duration: 1.5,
+      ease: "power2.inOut"
+    })
+    
+    // 2. Fade in mist & gate
+    .to(gateRef.current, {
+      opacity: 1,
+      duration: 2,
+      ease: "power2.out"
+    }, "-=0.5")
+
+    // 3. Main content appears
+    .to(heroContentRef.current, {
+      opacity: 1,
+      duration: 0.5
+    }, "-=1")
+
+    // 4. MASTERY text reveal
+    .fromTo(textCharsRef.current, 
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, stagger: 0.1, duration: 1, ease: "power2.out" },
+      "-=0.5"
+    )
+
+    // 5. Subheading and button
+    .fromTo(".hero-sub", 
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 1, ease: "power2.out", stagger: 0.2 },
+      "-=0.5"
+    );
+
+    // Scroll Transition Hero -> Levels
+    // Triggers when the Levels section comes into view below the pinned Hero
+    gsap.to(containerRef.current, {
+      scrollTrigger: {
+        trigger: "#levels",
+        start: "top bottom",
+        end: "top top",
+        scrub: true,
+      },
+      scale: 0.95,
+      opacity: 0.4,
+      filter: "blur(8px)",
+      ease: "none"
+    });
+
+    // Japanese Text translation cycle (6s) (Independent of scroll)
+    const jpTl = gsap.timeline({ repeat: -1, repeatDelay: 2 });
+    jpTl.to(jpTextRef.current, { opacity: 0, duration: 1, delay: 2 })
+        .to(enTextRef.current, { opacity: 1, duration: 1 }, "<")
+        .to(enTextRef.current, { opacity: 0, duration: 1, delay: 2 })
+        .to(jpTextRef.current, { opacity: 1, duration: 1 }, "<");
+
+    return () => {
+      tl.kill();
+      jpTl.kill();
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
+  }, []);
+
+  return (
+    <section ref={containerRef} id="home" className="relative h-screen w-full flex items-center overflow-hidden bg-[var(--color-off-white)]">
+      {/* Intro Overlay */}
+      <div 
+        ref={welcomeRef}
+        className="absolute inset-0 z-50 flex items-center justify-center bg-[var(--color-off-white)]"
+      >
+        <h1 className="font-heading text-3xl md:text-5xl tracking-widest text-[var(--color-primary-text)] font-light">
+          Welcome to Journey to Mastery
+        </h1>
+      </div>
+
+      <Sakura />
+
+      <div className="max-w-[1440px] w-full mx-auto px-12 md:px-24 h-full flex pt-24 pb-12 relative z-10">
+        
+        {/* Left: Text Content (45%) */}
+        <div ref={heroContentRef} className="w-full md:w-[45%] h-full flex flex-col justify-center opacity-0">
+          <p className="hero-sub text-sm tracking-[0.2em] text-[var(--color-secondary-text)] mb-4">
+            JOURNEY TO
+          </p>
+          
+          <h1 className="font-heading text-6xl md:text-8xl lg:text-[110px] leading-none mb-8 text-[var(--color-primary-text)]">
+            {"MASTERY".split("").map((char, i) => (
+              <span 
+                key={i} 
+                ref={el => { if(el) textCharsRef.current[i] = el; }}
+                className="inline-block"
+              >
+                {char}
+              </span>
+            ))}
+          </h1>
+          
+          <h2 className="hero-sub font-heading text-xl md:text-2xl text-[var(--color-japan-red)] font-semibold tracking-widest mb-6">
+            BUILD. LAUNCH. IMPACT.
+          </h2>
+          
+          <p className="hero-sub text-[var(--color-secondary-text)] max-w-md text-lg leading-relaxed mb-10">
+            A 4-week coding program for beginners and developers to turn one idea into a live product with real users.
+          </p>
+          
+          <button className="hero-sub group relative flex items-center gap-4 px-8 py-4 border border-[var(--color-japan-red)] text-[var(--color-japan-red)] font-medium tracking-widest text-sm overflow-hidden w-max">
+            <span className="absolute inset-0 bg-[var(--color-japan-red)] translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-400 ease-out z-0"></span>
+            <span className="relative z-10 group-hover:text-white transition-colors duration-400">BEGIN YOUR JOURNEY</span>
+            <ArrowRight className="relative z-10 w-4 h-4 group-hover:translate-x-2 group-hover:text-white transition-all duration-400" />
+          </button>
+        </div>
+
+        {/* Right: Visual (55%) */}
+        <div className="hidden md:flex w-[55%] h-full relative items-center justify-center">
+          {/* Torii Gate Image Placeholder */}
+          <div 
+            ref={gateRef}
+            className="absolute inset-0 opacity-0 transition-opacity"
+          >
+            {/* Using an unsplash image for Torii gate standing in water */}
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1528360983277-13d401cdc186?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center mix-blend-multiply opacity-80 filter contrast-125 saturate-50" />
+            
+            {/* SVG Displacement for Water Ripple */}
+            <svg className="hidden">
+              <filter id="ripple">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.1" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+            </svg>
+            
+            {/* Water overlay with ripple effect */}
+            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[var(--color-off-white)] to-transparent" style={{ filter: "url(#ripple)" }} />
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[var(--color-off-white)] via-[var(--color-off-white)]/50 to-transparent" />
+          </div>
+
+          {/* Vertical Japanese Text */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center">
+            <div className="relative font-heading text-4xl text-[var(--color-dark-red)] writing-vertical-rl tracking-widest h-64">
+              <div ref={jpTextRef} className="absolute inset-0 opacity-100 flex justify-center writing-vertical-rl" style={{ writingMode: 'vertical-rl'}}>
+                開発者コミュニティ
+              </div>
+              <div ref={enTextRef} className="absolute inset-0 opacity-0 flex justify-center text-xl tracking-[0.3em] font-sans text-[var(--color-secondary-text)] writing-vertical-rl whitespace-nowrap" style={{ writingMode: 'vertical-rl'}}>
+                DEVELOPER COMMUNITY
+              </div>
+            </div>
+            {/* Seal Icon */}
+            <div className="mt-8 border-2 border-[var(--color-dark-red)] p-1 w-12 h-12 flex items-center justify-center text-[var(--color-dark-red)]">
+              <span className="font-heading text-xs text-center leading-tight">魂<br/>決</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
