@@ -3,10 +3,17 @@ import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 
+import localFont from "next/font/local";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   weight: ["400", "500"],
+});
+
+const onari = localFont({
+  src: "../fonts/ONARI-PersonalUse.otf",
+  variable: "--font-onari-local",
 });
 
 const cormorant = Cormorant_Garamond({
@@ -28,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${cormorant.variable} h-full antialiased`}
+      className={`${inter.variable} ${cormorant.variable} ${onari.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         <SmoothScroll>

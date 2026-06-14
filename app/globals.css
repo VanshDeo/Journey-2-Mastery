@@ -15,6 +15,7 @@
   --color-borders: #D8D0C8;
   --font-sans: var(--font-inter);
   --font-serif: var(--font-cormorant);
+  --font-onari: var(--font-onari-local);
 }
 
 :root {

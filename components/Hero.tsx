@@ -104,7 +104,7 @@ export default function Hero() {
         className="absolute inset-0 z-50 flex items-center justify-center bg-[var(--color-off-white)]"
       >
         <h1 className="font-heading text-3xl md:text-5xl tracking-widest text-[var(--color-primary-text)] font-light">
-          Welcome to Journey to Mastery
+          Are you ready for your <span className="font-onari font-normal tracking-normal text-[var(--color-japan-red)]">Journey to Mastery</span>?
         </h1>
       </div>
 
@@ -152,8 +152,17 @@ export default function Hero() {
             ref={gateRef}
             className="absolute inset-0 opacity-0 transition-opacity"
           >
-            {/* Using an unsplash image for Torii gate standing in water */}
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1528360983277-13d401cdc186?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center mix-blend-multiply opacity-80 filter contrast-125 saturate-50" />
+            {/* The new hero image - Please place the attached image in public/hero-image.jpg */}
+            <div className="absolute inset-0 bg-[url('/hero-image-1.png')] bg-cover bg-center mix-blend-multiply opacity-90 filter contrast-110 saturate-50" />
+            
+            {/* Left side blur & fade to blend with the text section */}
+            <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[var(--color-off-white)] via-[var(--color-off-white)]/80 to-transparent z-5" />
+            
+            {/* Right side fade to blend in the background colour with no straight edges */}
+            <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-[var(--color-off-white)] via-[var(--color-off-white)]/80 to-transparent z-5" />
+            
+            {/* Top side fade to blend in the background colour */}
+            <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-[var(--color-off-white)] via-[var(--color-off-white)]/80 to-transparent z-5" />
             
             {/* SVG Displacement for Water Ripple */}
             <svg className="hidden">
@@ -164,12 +173,12 @@ export default function Hero() {
             </svg>
             
             {/* Water overlay with ripple effect */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[var(--color-off-white)] to-transparent" style={{ filter: "url(#ripple)" }} />
-            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[var(--color-off-white)] via-[var(--color-off-white)]/50 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[var(--color-off-white)] to-transparent z-10" style={{ filter: "url(#ripple)" }} />
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[var(--color-off-white)] via-[var(--color-off-white)]/50 to-transparent z-10" />
           </div>
 
           {/* Vertical Japanese Text */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center z-10">
             <div className="relative font-heading text-4xl text-[var(--color-dark-red)] writing-vertical-rl tracking-widest h-64">
               <div ref={jpTextRef} className="absolute inset-0 opacity-100 flex justify-center writing-vertical-rl" style={{ writingMode: 'vertical-rl'}}>
                 開発者コミュニティ
@@ -179,9 +188,9 @@ export default function Hero() {
               </div>
             </div>
             {/* Seal Icon */}
-            <div className="mt-8 border-2 border-[var(--color-dark-red)] p-1 w-12 h-12 flex items-center justify-center text-[var(--color-dark-red)]">
+            {/* <div className="mt-8 border-2 border-[var(--color-dark-red)] p-1 w-12 h-12 flex items-center justify-center text-[var(--color-dark-red)]">
               <span className="font-heading text-xs text-center leading-tight">魂<br/>決</span>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
