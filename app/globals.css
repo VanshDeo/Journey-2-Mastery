@@ -16,6 +16,31 @@
   --font-sans: var(--font-inter);
   --font-serif: var(--font-cormorant);
   --font-onari: var(--font-onari-local);
+
+  --animate-fade-in-slow: fade-in-slow 1.2s ease-in-out forwards;
+  --animate-slide-up-fade: slide-up-fade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fade-in-slow {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 :root {
@@ -24,6 +49,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
+
   /* We will keep the dark mode variables similar since it's a light-themed design, or override slightly. For now, sticking to the luxury light theme as default. */
   :root {
     --background: #F7F3EE;

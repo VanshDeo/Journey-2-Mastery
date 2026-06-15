@@ -38,12 +38,15 @@ export default function Footer() {
         
         {/* Left: Brand */}
         <div className="flex flex-col items-center md:items-start">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 rounded-full bg-[var(--color-japan-red)] flex items-center justify-center text-white">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 10h16"/><path d="M4 14h16"/><path d="M12 4v16"/><path d="M12 4c-4.4 0-8 3.6-8 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8z"/></svg>
+          <a href="https://dc.kgec.tech/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 mb-6 group">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden bg-white shadow-sm border border-[var(--color-borders)] group-hover:border-[var(--color-japan-red)] transition-colors">
+              <img src="/logo.jpg" alt="Dev Community Logo" className="w-full h-full object-cover" />
             </div>
-            <span className="font-heading text-lg tracking-wider text-[var(--color-japan-red)] font-semibold">MASTERY</span>
-          </div>
+            <div className="flex flex-col ml-1">
+              <span className="text-[10px] leading-none tracking-[0.2em] text-[var(--color-secondary-text)] mb-1 uppercase group-hover:text-[var(--color-japan-red)] transition-colors">Dev</span>
+              <span className="font-onari text-2xl leading-none tracking-widest text-[var(--color-japan-red)] font-normal uppercase">Community</span>
+            </div>
+          </a>
           <p className="text-[var(--color-secondary-text)] text-sm max-w-xs text-center md:text-left">
             Empowering developers to build, launch, and impact the world.
           </p>
