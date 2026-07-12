@@ -10,7 +10,11 @@ import { success, created } from "../../utils/apiResponse.js";
 import { notFound, forbidden } from "../../utils/apiError.js";
 
 const commentSchema = z.object({
-  message: z.string().min(1).max(2000),
+  message: z.string().min(1).max(2000).optional(),
+  content: z.string().min(1).max(2000).optional(),
+}).refine((data) => data.message !== undefined || data.content !== undefined, {
+  message: "Either 'message' or 'content' is required",
+  path: ["message"],
 });
 
 const commentRoutes = new Hono<AppEnv>();
@@ -58,7 +62,18 @@ commentRoutes.get("/:id/comments", async (c) => {
   });
 
   const hasMore = result.length > limit;
-  const items = hasMore ? result.slice(0, limit) : result;
+  const rawItems = hasMore ? result.slice(0, limit) : result;
+
+  const items = rawItems.map((item) => ({
+    id: item.id,
+    submissionId: item.submissionId,
+    userId: item.author.id,
+    userName: item.author.username,
+    userAvatar: item.author.avatarUrl,
+    userRole: item.author.role,
+    content: item.message,
+    createdAt: item.createdAt,
+  }));
 
   return success(c, items, {
     nextCursor: hasMore && items[items.length - 1] ? items[items.length - 1]!.id : null,
@@ -77,7 +92,8 @@ commentRoutes.post(
   async (c) => {
     const user = c.get("user");
     const submissionId = c.req.param("id");
-    const { message } = c.req.valid("json" as never) as { message: string };
+    const body = c.req.valid("json" as never) as { message?: string; content?: string };
+    const message = (body.message || body.content) as string;
 
     const submission = await db.query.submissions.findFirst({
       where: eq(submissions.id, submissionId),
@@ -102,7 +118,18 @@ commentRoutes.post(
       })
       .returning();
 
-    return created(c, comment);
+    const responseComment = {
+      id: comment.id,
+      submissionId: comment.submissionId,
+      userId: user.id,
+      userName: user.username,
+      userAvatar: user.avatarUrl,
+      userRole: user.role,
+      content: comment.message,
+      createdAt: comment.createdAt,
+    };
+
+    return created(c, responseComment);
   }
 );
 
