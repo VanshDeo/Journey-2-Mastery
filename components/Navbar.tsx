@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useSession } from "@/hooks/useSession";
+import Link from "next/link";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const { data: user } = useSession();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,26 +40,35 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Links */}
-        <div className="hidden lg:flex items-center gap-10">
-          {["HOME", "OVERVIEW", "LEVELS", "TIMELINE", "PRIZES", "FAQ", "CONTACT"].map((link, i) => (
-            <a
-              key={link}
-              href={`#${link.toLowerCase()}`}
-              className={clsx(
-                "text-xs tracking-widest font-medium transition-colors hover:text-[var(--color-japan-red)] relative group",
-                i === 0 ? "text-[var(--color-japan-red)]" : "text-[var(--color-primary-text)]"
-              )}
-            >
-              {link}
-              {i === 0 && (
-                <span className="absolute -bottom-2 left-0 w-full h-[1px] bg-[var(--color-japan-red)]"></span>
-              )}
-              {i !== 0 && (
-                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-[var(--color-japan-red)] transition-all duration-300 group-hover:w-full"></span>
-              )}
-            </a>
-          ))}
+        {/* Links and CTA */}
+        <div className="flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-10">
+            {["HOME", "OVERVIEW", "LEVELS", "TIMELINE", "PRIZES", "FAQ", "CONTACT"].map((link, i) => (
+              <a
+                key={link}
+                href={`#${link.toLowerCase()}`}
+                className={clsx(
+                  "text-xs tracking-widest font-medium transition-colors hover:text-[var(--color-japan-red)] relative group",
+                  i === 0 ? "text-[var(--color-japan-red)]" : "text-[var(--color-primary-text)]"
+                )}
+              >
+                {link}
+                {i === 0 && (
+                  <span className="absolute -bottom-2 left-0 w-full h-[1px] bg-[var(--color-japan-red)]"></span>
+                )}
+                {i !== 0 && (
+                  <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-[var(--color-japan-red)] transition-all duration-300 group-hover:w-full"></span>
+                )}
+              </a>
+            ))}
+          </div>
+
+          <Link
+            href={user ? "/dashboard" : "/login"}
+            className="px-5 py-2 border border-[var(--color-japan-red)] bg-[var(--color-japan-red)] text-white hover:bg-transparent hover:text-[var(--color-japan-red)] text-xs tracking-widest font-medium transition-all duration-300 rounded-sm"
+          >
+            {user ? "DASHBOARD" : "LOGIN"}
+          </Link>
         </div>
       </div>
     </nav>

@@ -27,6 +27,8 @@ export const metadata: Metadata = {
   description: "A 4-week coding program for developers to turn one idea into a live product.",
 };
 
+import QueryProvider from "@/components/providers/QueryProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,9 +40,11 @@ export default function RootLayout({
       className={`${inter.variable} ${cormorant.variable} ${onari.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <SmoothScroll>
-          {children}
-        </SmoothScroll>
+        <QueryProvider>
+          <SmoothScroll>
+            {children}
+          </SmoothScroll>
+        </QueryProvider>
       </body>
     </html>
   );

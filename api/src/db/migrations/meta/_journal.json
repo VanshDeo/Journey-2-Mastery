@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1783747377531,
+      "tag": "0000_elite_sentinels",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783789550893,
+      "tag": "0001_legal_agent_brand",
+      "breakpoints": true
+    }
+  ]
+}

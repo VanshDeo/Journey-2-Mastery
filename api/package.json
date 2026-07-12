@@ -1,0 +1,49 @@
+{
+  "name": "j2m-backend",
+  "version": "1.0.0",
+  "description": "Journey to Mastery — Role-based builder challenge platform backend",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "worker": "tsx src/jobs/workers/index.ts",
+    "worker:dev": "tsx watch src/jobs/workers/index.ts",
+    "worker:prod": "node dist/jobs/workers/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest run",
+    "test:unit": "vitest run src/tests/unit",
+    "test:integration": "vitest run src/tests/integration",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1085.0",
+    "@hono/node-server": "^1.14.1",
+    "@hono/zod-validator": "^0.5.0",
+    "bullmq": "^5.34.8",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2",
+    "hono": "^4.7.9",
+    "ioredis": "^5.6.1",
+    "jsonwebtoken": "^9.0.2",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "postgres": "^3.4.7",
+    "uuid": "^11.1.0",
+    "zod": "^3.25.36"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.0",
+    "@types/uuid": "^10.0.0",
+    "drizzle-kit": "^0.31.1",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.3"
+  }
+}

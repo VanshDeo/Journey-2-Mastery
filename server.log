@@ -1,0 +1,24 @@
+
+> journey2mastery@0.1.0 dev
+> next dev --port 3001
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.9.37:3001
+- Environments: .env.local
+✓ Ready in 1503ms
+
+[Proxy] Skipping public route: /login
+○ Compiling /login ...
+ GET /login?reason=roleguard_no_access&role=user 200 in 7.0s (next.js: 5.9s, proxy.ts: 532ms, application-code: 577ms)
+[Proxy] Intercepted /auth/callback with token
+[Proxy] Setting accessToken cookie
+[Proxy] Skipping public route: /auth/callback
+ GET /auth/callback 200 in 1463ms (next.js: 1276ms, proxy.ts: 17ms, application-code: 170ms)
+[Proxy] Proxying /api/v1/auth/me -> 200
+[Proxy] Auth cookie found, proceeding to /dashboard
+ GET /dashboard 200 in 2.6s (next.js: 2.4s, proxy.ts: 19ms, application-code: 97ms)
+[Proxy] Skipping public route: /login
+[Proxy] Skipping public route: /login
+ GET /login?reason=roleguard_no_access&role=user 200 in 227ms (next.js: 17ms, proxy.ts: 18ms, application-code: 193ms)
+ GET /login?reason=roleguard_no_access&role=user 200 in 135ms (next.js: 26ms, proxy.ts: 37ms, application-code: 72ms)

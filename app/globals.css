@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@plugin "@tailwindcss/typography";
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -16,6 +16,41 @@
   --font-sans: var(--font-inter);
   --font-serif: var(--font-cormorant);
   --font-onari: var(--font-onari-local);
+
+  /* Animation tokens */
+  --animate-in: enter 0.2s ease-out;
+  --animate-out: exit 0.15s ease-in;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes exit {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(4px); }
+  }
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }
 
 :root {
@@ -24,7 +59,6 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  /* We will keep the dark mode variables similar since it's a light-themed design, or override slightly. For now, sticking to the luxury light theme as default. */
   :root {
     --background: #F7F3EE;
     --foreground: #111111;
@@ -44,4 +78,81 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(216, 208, 200, 0.3);
+}
+
+/* Radix animations */
+@keyframes slideDownAndFade {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideLeftAndFade {
+  from { opacity: 0; transform: translateX(2px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideUpAndFade {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideRightAndFade {
+  from { opacity: 0; transform: translateX(-2px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Sidebar / layout transitions */
+.sidebar-transition {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8D0C8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C0B8B0;
+}
+
+/* Staggered fade-in for lists */
+.stagger-fade > * {
+  animation: slide-up 0.4s ease-out both;
+}
+.stagger-fade > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-fade > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-fade > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-fade > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-fade > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-fade > *:nth-child(6) { animation-delay: 250ms; }
+
+/* Markdown Preview Code Block Customization */
+.prose pre,
+.prose-sm pre,
+.prose :where(pre) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: var(--color-secondary-text) !important;
+  border: 1px solid var(--color-borders) !important;
+  border-radius: 6px !important;
+  padding: 12px 16px !important;
+  margin: 12px 0 !important;
+}
+
+.prose code,
+.prose-sm code,
+.prose :where(code),
+.prose pre code,
+.prose-sm pre code {
+  color: inherit !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  font-family: monospace !important;
 }

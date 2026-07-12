@@ -5,6 +5,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Sakura from "./Sakura";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { useSession } from "@/hooks/useSession";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,6 +20,7 @@ export default function Hero() {
   const enTextRef = useRef<HTMLDivElement>(null);
   
   const [introDone, setIntroDone] = useState(false);
+  const { data: user } = useSession();
 
   useEffect(() => {
     // Intro sequence tied to scroll
@@ -138,11 +141,14 @@ export default function Hero() {
             A 4-week coding program for beginners and developers to turn one idea into a live product with real users.
           </p>
           
-          <button className="hero-sub group relative flex items-center gap-4 px-8 py-4 border border-[var(--color-japan-red)] text-[var(--color-japan-red)] font-medium tracking-widest text-sm overflow-hidden w-max">
+          <Link
+            href={user ? "/dashboard" : "/login"}
+            className="hero-sub group relative flex items-center gap-4 px-8 py-4 border border-[var(--color-japan-red)] text-[var(--color-japan-red)] font-medium tracking-widest text-sm overflow-hidden w-max"
+          >
             <span className="absolute inset-0 bg-[var(--color-japan-red)] translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-400 ease-out z-0"></span>
             <span className="relative z-10 group-hover:text-white transition-colors duration-400">BEGIN YOUR JOURNEY</span>
             <ArrowRight className="relative z-10 w-4 h-4 group-hover:translate-x-2 group-hover:text-white transition-all duration-400" />
-          </button>
+          </Link>
         </div>
 
         {/* Right: Visual (55%) */}
