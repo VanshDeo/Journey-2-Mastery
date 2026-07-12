@@ -17,25 +17,33 @@ A full-stack gamified learning platform inspired by the Japanese martial arts ra
 - **GitHub OAuth** login with one-click authentication
 - **Profile onboarding** — college, branch, year, bio
 - **Task browser** — filter by difficulty (Easy/Medium/Hard) and rank requirement
-- **GitHub submission** — pick a repo directly from your GitHub account
+- **Task status lists** — separate lists for completed and pending tasks
+- **GitHub submission** — pick a repo directly from your GitHub account and manage submissions
+- **Profile and settings** — update your details, customize user settings, or delete account
 - **Live progress tracking** — rank progress bar, score, and submission history
 - **Leaderboard** — competitive ranking across all users
 - **Notifications** — real-time updates on submission reviews
 - **Community posts** — admin-published blog/announcement feed
 
+### 👥 Team Flow
+- **Team creation** — create a new team with a custom name
+- **Join-by-code** — easily join an existing team via a unique, shareable code
+- **Team profile** — view team members, roles, and overall workload/progress
+- **Team management** — regenerate join codes, transfer leadership, leave team, remove member, or disband team
+
 ### ⚖️ Judge Flow
 - **Review queue** — auto-assigned submissions via smart load balancing
 - **Score rubric** — structured scoring with comments and feedback
-- **Review history** — track past reviews and edit within a time window
-- **Threaded comments** — discussion on individual submissions
+- **Review history** — track past reviews and edit within a 24-hour window
+- **Threaded comments** — discussion on individual submissions between submitter, judge, and admin
 
 ### 🛡️ Admin Flow
 - **Full CRUD** — manage users, tasks, submissions, judges, and posts
-- **Judge management** — promote/demote, view workload metrics
+- **Judge management** — promote/demote, view workload/performance metrics
 - **Unassigned queue** — manually assign orphaned submissions
-- **Leaderboard management** — recalculate scores
+- **Leaderboard management** — recalculate scores and trigger queue-based updates
 - **Audit logging** — track all administrative actions
-- **Reports dashboard** — platform-wide analytics
+- **Activity Feed** — real-time tracking of platform activity
 
 ---
 
@@ -221,41 +229,130 @@ Journey-2-Mastery/
 
 ## 🔌 API Endpoints
 
-### Auth
-| Method | Endpoint | Description |
-|--------|---------|-------------|
-| `GET` | `/api/v1/auth/github` | Redirect to GitHub OAuth |
-| `GET` | `/api/v1/auth/github/callback` | OAuth callback → JWT |
-| `GET` | `/api/v1/auth/me` | Get current user 🔒 |
-| `POST` | `/api/v1/auth/complete-profile` | Onboarding profile 🔒 |
-| `POST` | `/api/v1/auth/refresh` | Refresh JWT tokens |
-| `POST` | `/api/v1/auth/logout` | Invalidate session 🔒 |
-| `GET` | `/api/v1/auth/sessions` | List active sessions 🔒 |
+All backend REST API endpoints are prefix-routed under `/api/v1`.
 
-### User
+### 🔑 [Auth](server/src/routes/v1/auth.routes.ts)
 | Method | Endpoint | Description |
 |--------|---------|-------------|
-| `GET` | `/api/v1/user/dashboard` | Dashboard stats 🔒 |
-| `GET` | `/api/v1/user/tasks` | Available tasks 🔒 |
-| `POST` | `/api/v1/user/submissions` | Submit a repo 🔒 |
-| `GET` | `/api/v1/user/submissions` | My submissions 🔒 |
-| `GET` | `/api/v1/user/github/repos` | List GitHub repos 🔒 |
+| `GET` | `/api/v1/auth/github` | Redirect to GitHub OAuth consent screen |
+| `GET` | `/api/v1/auth/github/callback` | GitHub OAuth callback — exchanges code for JWT |
+| `POST` | `/api/v1/auth/refresh` | Refresh JWT access/refresh tokens |
+| `GET` | `/api/v1/auth/me` | Get current logged-in user 🔒 |
+| `POST` | `/api/v1/auth/logout` | Invalidate current user session 🔒 |
+| `GET` | `/api/v1/auth/profile-status` | Check if profile onboarding setup is pending 🔒 |
+| `POST` | `/api/v1/auth/complete-profile` | Complete onboarding profile (one-time setup) 🔒 |
+| `GET` | `/api/v1/auth/sessions` | List active sessions/devices 🔒 |
+| `DELETE` | `/api/v1/auth/sessions/:id` | Revoke a specific active session 🔒 |
 
-### Judge
+### 👤 [User](server/src/routes/v1/user.routes.ts)
 | Method | Endpoint | Description |
 |--------|---------|-------------|
-| `GET` | `/api/v1/judge/dashboard` | Judge overview 🔒👨‍⚖️ |
-| `GET` | `/api/v1/judge/queue` | Review queue 🔒👨‍⚖️ |
-| `POST` | `/api/v1/judge/reviews` | Submit review 🔒👨‍⚖️ |
+| `GET` | `/api/v1/user/dashboard` | Retrieve user dashboard statistics 🔒 |
+| `GET` | `/api/v1/user/tasks` | Get all active, rank-eligible tasks 🔒 |
+| `GET` | `/api/v1/user/tasks/completed` | List completed tasks 🔒 |
+| `GET` | `/api/v1/user/tasks/pending` | List pending tasks/reviews 🔒 |
+| `GET` | `/api/v1/user/tasks/:taskId` | Retrieve details of a specific task 🔒 |
+| `GET` | `/api/v1/user/github/repos` | List available repositories from user's GitHub 🔒 |
+| `POST` | `/api/v1/user/submissions` | Submit a GitHub repository for a task 🔒 |
+| `GET` | `/api/v1/user/submissions` | List all own submissions 🔒 |
+| `GET` | `/api/v1/user/submissions/:id` | Get detail metrics of a submission 🔒 |
+| `PATCH` | `/api/v1/user/submissions/:id` | Update an unreviewed submission 🔒 |
+| `DELETE` | `/api/v1/user/submissions/:id` | Cancel/delete an unreviewed submission 🔒 |
+| `GET` | `/api/v1/user/profile` | Get own profile details 🔒 |
+| `PATCH` | `/api/v1/user/profile` | Update profile information 🔒 |
+| `GET` | `/api/v1/user/settings` | Get user settings 🔒 |
+| `PATCH` | `/api/v1/user/settings` | Update user settings 🔒 |
+| `DELETE` | `/api/v1/user/account` | Delete own user account 🔒 |
 
-### Admin
+### 👥 [Teams](server/src/routes/v1/team.routes.ts)
 | Method | Endpoint | Description |
 |--------|---------|-------------|
-| `GET` | `/api/v1/admin/dashboard` | Platform stats 🔒🛡️ |
-| `CRUD` | `/api/v1/admin/users` | User management 🔒🛡️ |
-| `CRUD` | `/api/v1/admin/tasks` | Task management 🔒🛡️ |
-| `CRUD` | `/api/v1/admin/submissions` | Submission management 🔒🛡️ |
-| `CRUD` | `/api/v1/admin/judges` | Judge management 🔒🛡️ |
+| `POST` | `/api/v1/teams` | Create a new team 🔒 |
+| `GET` | `/api/v1/teams/my` | Retrieve details of own team 🔒 |
+| `POST` | `/api/v1/teams/join` | Join a team using a unique join code 🔒 |
+| `GET` | `/api/v1/teams/:id` | View public profile of a team 🔒 |
+| `GET` | `/api/v1/teams/:id/members` | Get member list of a team 🔒 |
+| `PATCH` | `/api/v1/teams/:id` | Rename/update team details (creator only) 🔒 |
+| `POST` | `/api/v1/teams/:id/regenerate-code` | Generate new shareable join code (creator only) 🔒 |
+| `DELETE` | `/api/v1/teams/:id` | Disband team (creator only) 🔒 |
+| `POST` | `/api/v1/teams/:id/leave` | Leave team 🔒 |
+| `DELETE` | `/api/v1/teams/:id/members/:userId` | Remove member from team (creator only) 🔒 |
+| `PATCH` | `/api/v1/teams/:id/transfer-leadership` | Transfer ownership to a member (creator only) 🔒 |
+
+### ⚖️ [Judge](server/src/routes/v1/judge.routes.ts)
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET` | `/api/v1/judge/dashboard` | Get dashboard statistics for judge workload 🔒👨‍⚖️ |
+| `GET` | `/api/v1/judge/submissions` | Retrieve judge review queue 🔒👨‍⚖️ |
+| `GET` | `/api/v1/judge/submissions/:id` | View submission details for evaluation 🔒👨‍⚖️ |
+| `POST` | `/api/v1/judge/submissions/:id/review` | Submit a score and review rubric 🔒👨‍⚖️ |
+| `GET` | `/api/v1/judge/reviews` | View list of completed reviews 🔒👨‍⚖️ |
+| `GET` | `/api/v1/judge/reviews/:id` | Retrieve detailed review sheet 🔒👨‍⚖️ |
+| `PATCH` | `/api/v1/judge/reviews/:id` | Edit feedback/score within edit window 🔒👨‍⚖️ |
+| `GET` | `/api/v1/judge/criteria` | List general scoring criteria 🔒👨‍⚖️ |
+| `GET` | `/api/v1/judge/workload` | View judge capacity and metrics 🔒👨‍⚖️ |
+
+### 🛡️ [Admin](server/src/routes/v1/admin.routes.ts)
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET` | `/api/v1/admin/dashboard` | Platform overall analytics 🔒🛡️ |
+| `GET` | `/api/v1/admin/dashboard/activity` | Activity audit stream 🔒🛡️ |
+| `GET` | `/api/v1/admin/users` | List all registered users 🔒🛡️ |
+| `GET` | `/api/v1/admin/users/:id` | Get specific user profile 🔒🛡️ |
+| `PATCH` | `/api/v1/admin/users/:id` | Modify user fields 🔒🛡️ |
+| `PATCH` | `/api/v1/admin/users/:id/role` | Promote/demote user roles 🔒🛡️ |
+| `DELETE` | `/api/v1/admin/users/:id` | Force delete user account 🔒🛡️ |
+| `POST` | `/api/v1/admin/tasks` | Create a new task 🔒🛡️ |
+| `GET` | `/api/v1/admin/tasks` | List all tasks (including drafts) 🔒🛡️ |
+| `PATCH` | `/api/v1/admin/tasks/:id` | Update task requirements/metadata 🔒🛡️ |
+| `DELETE` | `/api/v1/admin/tasks/:id` | Delete a task 🔒🛡️ |
+| `GET` | `/api/v1/admin/submissions` | List all system submissions 🔒🛡️ |
+| `GET` | `/api/v1/admin/submissions/:id` | Get specific submission details 🔒🛡️ |
+| `POST` | `/api/v1/admin/submissions/:id/assign` | Manually assign submission to a judge 🔒🛡️ |
+| `GET` | `/api/v1/admin/assignment/unassigned` | View unassigned submissions queue 🔒🛡️ |
+| `POST` | `/api/v1/admin/assignment/reassign/:submissionId` | Force reassign a submission to another judge 🔒🛡️ |
+| `PATCH` | `/api/v1/admin/reviews/:id/override` | Override scoring/review of a judge 🔒🛡️ |
+| `GET` | `/api/v1/admin/reviews` | View list of all system reviews 🔒🛡️ |
+| `GET` | `/api/v1/admin/leaderboard` | View admin-level leaderboard 🔒🛡️ |
+| `POST` | `/api/v1/admin/leaderboard/recalculate` | Trigger system-wide leaderboard recalculation 🔒🛡️ |
+| `GET` | `/api/v1/admin/judges` | List judges and active workload statuses 🔒🛡️ |
+| `GET` | `/api/v1/admin/judges/:id/performance` | Get judge performance metrics 🔒🛡️ |
+| `POST` | `/api/v1/admin/posts/upload-image` | Upload image for community post 🔒🛡️ |
+| `POST` | `/api/v1/admin/posts` | Create new community post 🔒🛡️ |
+| `GET` | `/api/v1/admin/posts` | List all community posts 🔒🛡️ |
+| `PATCH` | `/api/v1/admin/posts/:id` | Update a community post 🔒🛡️ |
+| `DELETE` | `/api/v1/admin/posts/:id` | Delete a community post 🔒🛡️ |
+| `GET` | `/api/v1/admin/audit-log` | Get all system audit logs 🔒🛡️ |
+
+### 🏆 [Leaderboard](server/src/routes/v1/leaderboard.routes.ts)
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET` | `/api/v1/leaderboard` | Get public leaderboard 🔒 |
+
+### 📢 [Community Posts](server/src/routes/v1/post.routes.ts)
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET` | `/api/v1/posts` | Retrieve paginated feed of published posts 🔒 |
+| `GET` | `/api/v1/posts/:id` | Retrieve details of a single post 🔒 |
+
+### 🔔 [Notifications](server/src/routes/v1/notification.routes.ts)
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET` | `/api/v1/notifications` | Get paginated list of own notifications 🔒 |
+| `PATCH` | `/api/v1/notifications/:id/read` | Mark a notification as read 🔒 |
+| `PATCH` | `/api/v1/notifications/read-all` | Mark all notifications as read 🔒 |
+| `DELETE` | `/api/v1/notifications/:id` | Delete a notification 🔒 |
+
+### 💬 [Submission Comments](server/src/routes/v1/comment.routes.ts)
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET` | `/api/v1/submissions/:id/comments` | Get comment thread on a submission (owner/assigned judge/admin) 🔒 |
+| `POST` | `/api/v1/submissions/:id/comments` | Add comment to submission thread (owner/assigned judge/admin) 🔒 |
+
+### 🏥 [Infrastructure](server/src/routes/v1/health.routes.ts)
+| Method | Endpoint | Description |
+|--------|---------|-------------|
+| `GET` | `/api/v1/health` | Health check (verifies PostgreSQL and Redis connectivity) |
 
 > 🔒 = Requires authentication &nbsp; 👨‍⚖️ = Judge role &nbsp; 🛡️ = Admin role
 
@@ -313,15 +410,26 @@ vercel deploy
 docker-compose up --build -d
 ```
 
----
+## 🛠️ Development Scripts & Commands
 
-## 🤝 Contributing
+Below is a reference of the available package scripts for managing the frontend, Hono backend, background workers, and PostgreSQL database migrations.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Services
+* **Start Frontend**: `npm run dev` (starts Next.js on port 3001)
+* **Start Hono Backend**: `npm run dev:backend` (starts Hono server on port 3000 with hot-reload)
+* **Start Background Worker**: `npm run worker:dev` (starts BullMQ job processor with hot-reload)
+
+### Database Management (Drizzle Kit)
+* **Push schema changes directly**: `npm run db:push` (useful for quick prototyping)
+* **Generate migration files**: `npm run db:generate` (creates SQL file under `server/src/db/migrations`)
+* **Run outstanding migrations**: `npm run db:migrate` (applies outstanding schema migrations to PostgreSQL)
+* **Explore DB via GUI**: `npm run db:studio` (launches local Drizzle Studio database manager UI)
+
+### Production Build
+* **Build Frontend**: `npm run build`
+* **Build Backend**: `npm run build:backend`
+* **Run Backend (Prod)**: `npm run start:backend`
+* **Run Worker (Prod)**: `npm run worker:prod`
 
 ---
 
