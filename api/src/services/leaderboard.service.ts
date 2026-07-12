@@ -5,14 +5,13 @@ import { CACHE_KEYS, CACHE_TTL } from "../utils/constants.js";
 import { logger } from "../config/logger.js";
 
 interface LeaderboardEntry {
+  rank: number;
   userId: string;
-  username: string;
-  fullName: string | null;
+  userName: string;
   avatarUrl: string | null;
-  rank: string;
-  totalScore: number;
+  score: number;
   tasksCompleted: number;
-  leaderboardRank: number;
+  userRank: string;
 }
 
 /**
@@ -53,14 +52,13 @@ export async function getLeaderboard(
     );
 
     const entries: LeaderboardEntry[] = (rows as unknown as Array<Record<string, unknown>>).map((row) => ({
+      rank: Number(row.leaderboard_rank),
       userId: row.user_id as string,
-      username: row.username as string,
-      fullName: row.full_name as string | null,
+      userName: (row.full_name as string | null) || (row.username as string),
       avatarUrl: row.avatar_url as string | null,
-      rank: row.rank as string,
-      totalScore: Number(row.total_score),
+      score: Number(row.total_score),
       tasksCompleted: Number(row.tasks_completed),
-      leaderboardRank: Number(row.leaderboard_rank),
+      userRank: row.rank as string,
     }));
 
     const hasMore = entries.length > limit;

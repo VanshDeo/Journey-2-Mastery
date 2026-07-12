@@ -5,6 +5,7 @@ import { success, created } from "../utils/apiResponse.js";
 import { env } from "../config/env.js";
 import type { CompleteProfileInput, RefreshTokenInput } from "../validators/auth.validator.js";
 
+
 /**
  * GET /api/v1/auth/github
  * Redirect user to GitHub OAuth consent screen.
@@ -176,3 +177,5 @@ export async function revokeSession(c: Context<AppEnv>) {
   await authService.revokeSession(user.id, sessionId!);
   return success(c, { message: "Session revoked successfully" });
 }
+
+

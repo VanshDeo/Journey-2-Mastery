@@ -12,7 +12,9 @@ import { leaderboardQueue, notificationQueue } from "../config/queue.js";
 import { notFound, badRequest } from "../utils/apiError.js";
 import { reassignSubmission, computeJudgeLoadScore } from "./assignment.service.js";
 import { AUDIT_ACTIONS, NOTIFICATION_TYPES } from "../utils/constants.js";
-import { checkAndPromoteUser } from "./user.service.js";
+import { checkAndPromoteUser, syncUserScore } from "./user.service.js";
+import { env } from "../config/env.js";
+import { enrichReviewWithScores } from "./judge.service.js";
 import type {
   CreateTaskInput,
   UpdateTaskInput,
@@ -119,7 +121,17 @@ export async function getUserById(userId: string) {
   });
 
   if (!user) throw notFound("User", userId);
-  return user;
+
+  // Count submissions
+  const [submissionsCountResult] = await db
+    .select({ count: count() })
+    .from(submissions)
+    .where(eq(submissions.userId, userId));
+
+  return {
+    ...user,
+    submissionCount: submissionsCountResult?.count ?? 0,
+  };
 }
 
 export async function updateUser(
@@ -297,7 +309,25 @@ export async function getAllSubmissions(
   });
 
   const hasMore = result.length > limit;
-  const items = hasMore ? result.slice(0, limit) : result;
+  const rawItems = hasMore ? result.slice(0, limit) : result;
+
+  const items = rawItems.map((s) => ({
+    id: s.id,
+    taskId: s.taskId,
+    taskTitle: s.task?.title,
+    userId: s.userId,
+    userName: s.user?.username,
+    repoId: s.repoId,
+    repoUrl: s.repoUrl,
+    repoName: s.repoName,
+    status: s.status,
+    assignedJudgeId: s.assignedJudgeId,
+    judgeName: s.assignedJudge?.username,
+    autoAssigned: s.autoAssigned,
+    submittedAt: s.submittedAt,
+    score: s.review?.totalScore ?? null,
+    review: enrichReviewWithScores(s.review),
+  }));
 
   return {
     items,
@@ -315,7 +345,27 @@ export async function getSubmissionById(submissionId: string) {
   });
 
   if (!submission) throw notFound("Submission", submissionId);
-  return submission;
+  
+  return {
+    id: submission.id,
+    taskId: submission.taskId,
+    taskTitle: submission.task?.title,
+    userId: submission.userId,
+    userName: submission.user?.username,
+    repoId: submission.repoId,
+    repoUrl: submission.repoUrl,
+    repoName: submission.repoName,
+    status: submission.status,
+    assignedJudgeId: submission.assignedJudgeId,
+    judgeName: submission.assignedJudge?.username,
+    autoAssigned: submission.autoAssigned,
+    submittedAt: submission.submittedAt,
+    score: submission.review?.totalScore ?? null,
+    review: enrichReviewWithScores(submission.review),
+    task: submission.task,
+    user: submission.user,
+    assignedJudge: submission.assignedJudge,
+  };
 }
 
 export async function manualAssign(
@@ -384,7 +434,24 @@ export async function getUnassignedSubmissions(cursor?: string, limit = 20) {
   });
 
   const hasMore = result.length > limit;
-  const items = hasMore ? result.slice(0, limit) : result;
+  const rawItems = hasMore ? result.slice(0, limit) : result;
+
+  const items = rawItems.map((s) => ({
+    id: s.id,
+    taskId: s.taskId,
+    taskTitle: s.task?.title,
+    userId: s.userId,
+    userName: s.user?.username,
+    repoId: s.repoId,
+    repoUrl: s.repoUrl,
+    repoName: s.repoName,
+    status: s.status,
+    assignedJudgeId: s.assignedJudgeId,
+    autoAssigned: s.autoAssigned,
+    submittedAt: s.submittedAt,
+    task: s.task,
+    user: s.user,
+  }));
 
   return {
     items,
@@ -429,11 +496,15 @@ export async function overrideReview(
   if (data.totalScore !== undefined) updateData.totalScore = data.totalScore;
   if (data.feedback !== undefined) updateData.feedback = data.feedback;
 
-  const [updated] = await db
-    .update(reviews)
-    .set(updateData)
-    .where(eq(reviews.id, reviewId))
-    .returning();
+  let updated = review;
+  if (Object.keys(updateData).length > 0) {
+    const [dbUpdated] = await db
+      .update(reviews)
+      .set(updateData)
+      .where(eq(reviews.id, reviewId))
+      .returning();
+    updated = { ...dbUpdated!, submission: review.submission };
+  }
 
   // Update submission decision if provided
   if (data.decision && review.submission) {
@@ -447,6 +518,11 @@ export async function overrideReview(
     }
   }
 
+  // Sync user score
+  if (review.submission) {
+    await syncUserScore(review.submission.userId);
+  }
+
   await db.insert(auditLog).values({
     actorId: adminId,
     action: AUDIT_ACTIONS.REVIEW_OVERRIDDEN,
@@ -458,7 +534,7 @@ export async function overrideReview(
   // Recalculate leaderboard
   await leaderboardQueue.add("recalculate", {});
 
-  return updated!;
+  return enrichReviewWithScores(updated)!;
 }
 
 export async function getAllReviews(cursor?: string, limit = 20) {
@@ -635,5 +711,69 @@ export async function getAuditLog(cursor?: string, limit = 20) {
       nextCursor: hasMore && items[items.length - 1] ? items[items.length - 1]!.id : null,
       limit,
     },
+  };
+}
+
+/**
+ * Get aggregated performance metrics for a specific judge.
+ */
+export async function getJudgePerformance(judgeId: string) {
+  const judge = await db.query.users.findFirst({
+    where: eq(users.id, judgeId),
+    columns: { username: true, fullName: true },
+  });
+
+  if (!judge) throw notFound("Judge", judgeId);
+
+  const [reviewedResult] = await db
+    .select({ count: count() })
+    .from(reviews)
+    .where(eq(reviews.judgeId, judgeId));
+  const totalReviews = reviewedResult?.count ?? 0;
+
+  const [avgScoreResult] = await db
+    .select({ avgScore: sql<number>`COALESCE(AVG(${reviews.totalScore}), 0)` })
+    .from(reviews)
+    .where(eq(reviews.judgeId, judgeId));
+  const avgScoreGiven = Number(avgScoreResult?.avgScore ?? 0);
+
+  const sampleSize = env.JUDGE_TURNAROUND_SAMPLE_SIZE;
+  const turnaroundResult = await db.execute(sql`
+    WITH recent_reviews AS (
+      SELECT r.reviewed_at, s.assigned_at
+      FROM reviews r
+      INNER JOIN submissions s ON s.id = r.submission_id
+      WHERE r.judge_id = ${judgeId}
+        AND s.assigned_at IS NOT NULL
+      ORDER BY r.reviewed_at DESC
+      LIMIT ${sampleSize}
+    )
+    SELECT AVG(
+      EXTRACT(EPOCH FROM (reviewed_at - assigned_at)) / 3600
+    ) as avg_hours
+    FROM recent_reviews
+  `);
+  const avgTurnaroundHours = Number(
+    (turnaroundResult as unknown as Array<{ avg_hours: string | null }>)[0]?.avg_hours ?? 0
+  );
+
+  const [pendingResult] = await db
+    .select({ count: count() })
+    .from(submissions)
+    .where(
+      and(
+        eq(submissions.assignedJudgeId, judgeId),
+        eq(submissions.status, "in_review")
+      )
+    );
+  const pendingCount = pendingResult?.count ?? 0;
+
+  return {
+    judgeId,
+    judgeName: judge.fullName || judge.username,
+    totalReviews,
+    avgScoreGiven,
+    avgTurnaroundHours,
+    pendingCount,
   };
 }

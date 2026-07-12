@@ -55,6 +55,7 @@ export const users = pgTable(
     bio: text("bio"),
     isProfileComplete: boolean("is_profile_complete").notNull().default(false),
     isActive: boolean("is_active").notNull().default(true),
+    score: integer("score").notNull().default(0),
     githubAccessToken: text("github_access_token"), // Encrypted at rest
     settings: jsonb("settings").default({
       emailNotifications: true,

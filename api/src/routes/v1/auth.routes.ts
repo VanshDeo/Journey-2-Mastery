@@ -18,6 +18,8 @@ auth.get("/github", authController.githubRedirect);
 /** GitHub OAuth callback — exchange code for JWT */
 auth.get("/github/callback", authController.githubCallback);
 
+
+
 /** Refresh JWT token */
 auth.post(
   "/refresh",

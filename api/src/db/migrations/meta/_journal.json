@@ -15,6 +15,13 @@
       "when": 1783789550893,
       "tag": "0001_legal_agent_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783826273918,
+      "tag": "0002_faithful_iron_fist",
+      "breakpoints": true
     }
   ]
 }

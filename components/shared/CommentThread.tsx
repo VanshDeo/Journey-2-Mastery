@@ -20,8 +20,8 @@ export default function CommentThread({ submissionId }: CommentThreadProps) {
   const { data: user } = useSession();
   const [content, setContent] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!content.trim()) return;
     addComment.mutate(
       { submissionId, content: content.trim() },
@@ -84,6 +84,12 @@ export default function CommentThread({ submissionId }: CommentThreadProps) {
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+              }}
               placeholder="Add a comment..."
               className="min-h-[40px] h-10 resize-none"
               rows={1}

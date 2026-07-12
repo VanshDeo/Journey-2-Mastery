@@ -7,7 +7,30 @@ import { notFound, forbidden, conflict } from "../utils/apiError.js";
 import { computeJudgeLoadScore } from "./assignment.service.js";
 import { NOTIFICATION_TYPES } from "../utils/constants.js";
 import type { SubmitReviewInput, EditReviewInput } from "../validators/judge.validator.js";
-import { checkAndPromoteUser } from "./user.service.js";
+import { checkAndPromoteUser, syncUserScore } from "./user.service.js";
+
+const criteriaMap: Record<string, { name: string; maxScore: number }> = {
+  codeQuality: { name: "Code Quality", maxScore: 25 },
+  functionality: { name: "Functionality", maxScore: 25 },
+  documentation: { name: "Documentation", maxScore: 15 },
+  testing: { name: "Testing", maxScore: 15 },
+  creativity: { name: "Creativity", maxScore: 20 },
+};
+
+export function enrichReviewWithScores(review: any) {
+  if (!review) return null;
+  const breakdown = (review.scoreBreakdown as Record<string, number>) || {};
+  const scores = Object.entries(criteriaMap).map(([id, info]) => ({
+    criterionId: id,
+    criterionName: info.name,
+    score: breakdown[id] ?? 0,
+    maxScore: info.maxScore,
+  }));
+  return {
+    ...review,
+    scores,
+  };
+}
 
 // ──────────────────────────────────────────────
 // Dashboard
@@ -56,15 +79,18 @@ export async function getDashboard(judgeId: string) {
     pendingCount: pendingResult?.count ?? 0,
     reviewedCount: reviewedResult?.count ?? 0,
     avgTurnaround: avgTurnaroundHrs > 0 ? `${Math.round(avgTurnaroundHrs * 10) / 10}h` : '—',
-    recentReviews: recentReviews.map((r) => ({
-      id: r.id,
-      submissionId: r.submissionId,
-      judgeId: r.judgeId,
-      scores: r.scoreBreakdown || [],
-      totalScore: r.totalScore,
-      feedback: r.feedback,
-      createdAt: r.reviewedAt,
-    })),
+    recentReviews: recentReviews.map((r) => {
+      const enriched = enrichReviewWithScores(r)!;
+      return {
+        id: enriched.id,
+        submissionId: enriched.submissionId,
+        judgeId: enriched.judgeId,
+        scores: enriched.scores,
+        totalScore: enriched.totalScore,
+        feedback: enriched.feedback,
+        createdAt: enriched.reviewedAt,
+      };
+    }),
   };
 }
 
@@ -99,7 +125,26 @@ export async function getAssignedSubmissions(
   });
 
   const hasMore = result.length > limit;
-  const items = hasMore ? result.slice(0, limit) : result;
+  const rawItems = hasMore ? result.slice(0, limit) : result;
+
+  const items = rawItems.map((s) => ({
+    id: s.id,
+    taskId: s.taskId,
+    taskTitle: s.task?.title,
+    userId: s.userId,
+    userName: s.user?.username,
+    repoId: s.repoId,
+    repoUrl: s.repoUrl,
+    repoName: s.repoName,
+    status: s.status,
+    assignedJudgeId: s.assignedJudgeId,
+    autoAssigned: s.autoAssigned,
+    submittedAt: s.submittedAt,
+    score: s.review?.totalScore ?? null,
+    review: s.review,
+    task: s.task,
+    user: s.user,
+  }));
 
   return {
     items,
@@ -127,7 +172,24 @@ export async function getSubmissionForReview(judgeId: string, submissionId: stri
     throw forbidden("This submission is not assigned to you");
   }
 
-  return submission;
+  return {
+    id: submission.id,
+    taskId: submission.taskId,
+    taskTitle: submission.task?.title,
+    userId: submission.userId,
+    userName: submission.user?.fullName || submission.user?.username,
+    repoId: submission.repoId,
+    repoUrl: submission.repoUrl,
+    repoName: submission.repoName,
+    status: submission.status,
+    assignedJudgeId: submission.assignedJudgeId,
+    autoAssigned: submission.autoAssigned,
+    submittedAt: submission.submittedAt,
+    score: submission.review?.totalScore ?? null,
+    review: enrichReviewWithScores(submission.review),
+    task: submission.task,
+    user: submission.user,
+  };
 }
 
 // ──────────────────────────────────────────────
@@ -167,14 +229,32 @@ export async function submitReview(
     );
   }
 
+  let scoreBreakdown = data.scoreBreakdown;
+  let totalScore = data.totalScore;
+
+  if (data.scores) {
+    scoreBreakdown = data.scores.reduce((acc, s) => {
+      acc[s.criterionId] = s.score;
+      return acc;
+    }, {} as Record<string, number>);
+
+    totalScore = data.scores.reduce((sum, s) => sum + s.score, 0);
+  }
+
+  if (totalScore === undefined) {
+    totalScore = 0;
+  }
+
+  const decision = data.decision || (totalScore >= 50 ? "approved" : "rejected");
+
   // Create review
   const [review] = await db
     .insert(reviews)
     .values({
       submissionId,
       judgeId,
-      scoreBreakdown: data.scoreBreakdown,
-      totalScore: data.totalScore,
+      scoreBreakdown,
+      totalScore,
       feedback: data.feedback,
     })
     .returning();
@@ -182,13 +262,16 @@ export async function submitReview(
   // Update submission status
   await db
     .update(submissions)
-    .set({ status: data.decision })
+    .set({ status: decision })
     .where(eq(submissions.id, submissionId));
 
   // Check and promote user if approved
-  if (data.decision === "approved") {
+  if (decision === "approved") {
     await checkAndPromoteUser(submission.userId, submission.taskId);
   }
+
+  // Update user's cached score
+  await syncUserScore(submission.userId);
 
   // Enqueue leaderboard recalculation
   await leaderboardQueue.add("recalculate", {});
@@ -197,14 +280,14 @@ export async function submitReview(
   await notificationQueue.add("notify-review", {
     userId: submission.userId,
     type:
-      data.decision === "approved"
+      decision === "approved"
         ? NOTIFICATION_TYPES.SUBMISSION_APPROVED
         : NOTIFICATION_TYPES.SUBMISSION_REJECTED,
-    message: `Your submission has been ${data.decision}`,
+    message: `Your submission has been ${decision}`,
     relatedEntityId: submissionId,
   });
 
-  return review!;
+  return enrichReviewWithScores(review)!;
 }
 
 export async function editReview(
@@ -214,6 +297,7 @@ export async function editReview(
 ) {
   const review = await db.query.reviews.findFirst({
     where: eq(reviews.id, reviewId),
+    with: { submission: true },
   });
 
   if (!review) throw notFound("Review", reviewId);
@@ -234,22 +318,40 @@ export async function editReview(
   }
 
   const updateData: Record<string, unknown> = {};
-  if (data.scoreBreakdown !== undefined) updateData.scoreBreakdown = data.scoreBreakdown;
-  if (data.totalScore !== undefined) updateData.totalScore = data.totalScore;
+
+  let scoreBreakdown = data.scoreBreakdown;
+  let totalScore = data.totalScore;
+
+  if (data.scores) {
+    scoreBreakdown = data.scores.reduce((acc, s) => {
+      acc[s.criterionId] = s.score;
+      return acc;
+    }, {} as Record<string, number>);
+
+    totalScore = data.scores.reduce((sum, s) => sum + s.score, 0);
+  }
+
+  if (scoreBreakdown !== undefined) updateData.scoreBreakdown = scoreBreakdown;
+  if (totalScore !== undefined) updateData.totalScore = totalScore;
   if (data.feedback !== undefined) updateData.feedback = data.feedback;
 
-  const [updated] = await db
-    .update(reviews)
-    .set(updateData)
-    .where(eq(reviews.id, reviewId))
-    .returning();
+  let updated = review;
+  if (Object.keys(updateData).length > 0) {
+    const [dbUpdated] = await db
+      .update(reviews)
+      .set(updateData)
+      .where(eq(reviews.id, reviewId))
+      .returning();
+    updated = { ...dbUpdated!, submission: review.submission };
+  }
 
   // Trigger leaderboard recalc if score changed
-  if (data.totalScore !== undefined) {
+  if (totalScore !== undefined && review.submission) {
+    await syncUserScore(review.submission.userId);
     await leaderboardQueue.add("recalculate", {});
   }
 
-  return updated!;
+  return enrichReviewWithScores(updated)!;
 }
 
 export async function getReviews(judgeId: string, cursor?: string, limit = 20) {
@@ -274,7 +376,7 @@ export async function getReviews(judgeId: string, cursor?: string, limit = 20) {
   const items = hasMore ? result.slice(0, limit) : result;
 
   return {
-    items,
+    items: items.map((r) => enrichReviewWithScores(r)!),
     meta: {
       nextCursor: hasMore && items[items.length - 1] ? items[items.length - 1]!.id : null,
       limit,
@@ -298,7 +400,7 @@ export async function getReviewById(judgeId: string, reviewId: string) {
   if (!review) throw notFound("Review", reviewId);
   if (review.judgeId !== judgeId) throw forbidden("You can only view your own reviews");
 
-  return review;
+  return enrichReviewWithScores(review)!;
 }
 
 // ──────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import { eq, and, sql, count } from "drizzle-orm";
 import { db } from "../db/client.js";
-import { users, submissions } from "../db/schema.js";
+import { users, submissions, reviews } from "../db/schema.js";
 import { notificationQueue } from "../config/queue.js";
 import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
@@ -11,6 +11,8 @@ export interface JudgeLoadScore {
   judgeId: string;
   username: string;
   pendingCount: number;
+  assignedCount: number;
+  completedCount: number;
   avgTurnaroundHrs: number;
   loadScore: number;
   lastAssignedAt: Date | null;
@@ -190,15 +192,19 @@ export async function computeJudgeLoadScore(
   const sampleSize = env.JUDGE_TURNAROUND_SAMPLE_SIZE;
 
   const turnaroundResult = await db.execute(sql`
+    WITH recent_reviews AS (
+      SELECT r.reviewed_at, s.assigned_at
+      FROM reviews r
+      INNER JOIN submissions s ON s.id = r.submission_id
+      WHERE r.judge_id = ${judgeId}
+        AND s.assigned_at IS NOT NULL
+      ORDER BY r.reviewed_at DESC
+      LIMIT ${sampleSize}
+    )
     SELECT AVG(
-      EXTRACT(EPOCH FROM (r.reviewed_at - s.assigned_at)) / 3600
+      EXTRACT(EPOCH FROM (reviewed_at - assigned_at)) / 3600
     ) as avg_hours
-    FROM reviews r
-    INNER JOIN submissions s ON s.id = r.submission_id
-    WHERE r.judge_id = ${judgeId}
-      AND s.assigned_at IS NOT NULL
-    ORDER BY r.reviewed_at DESC
-    LIMIT ${sampleSize}
+    FROM recent_reviews
   `);
 
   const avgTurnaroundHrs = Number(
@@ -206,7 +212,7 @@ export async function computeJudgeLoadScore(
   );
 
   // loadScore = pendingCount + (avgTurnaroundHrs / 24)
-  const loadScore = pendingCount + avgTurnaroundHrs / 24;
+  const loadScore = Math.round((pendingCount + avgTurnaroundHrs / 24) * 100) / 100;
 
   // Last assigned time (for tie-breaking)
   const [lastAssigned] = await db
@@ -216,10 +222,20 @@ export async function computeJudgeLoadScore(
     .orderBy(sql`${submissions.assignedAt} DESC NULLS LAST`)
     .limit(1);
 
+  // Completed count: reviews submitted by this judge
+  const [completedResult] = await db
+    .select({ count: count() })
+    .from(reviews)
+    .where(eq(reviews.judgeId, judgeId));
+
+  const completedCount = completedResult?.count ?? 0;
+
   return {
     judgeId,
     username,
     pendingCount,
+    assignedCount: pendingCount,
+    completedCount,
     avgTurnaroundHrs,
     loadScore,
     lastAssignedAt: lastAssigned?.assignedAt ?? null,

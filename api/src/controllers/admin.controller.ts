@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 import type { AppEnv } from "../types/index.js";
 import * as adminService from "../services/admin.service.js";
+import * as leaderboardService from "../services/leaderboard.service.js";
 import { success, created, accepted } from "../utils/apiResponse.js";
 import type {
   CreateTaskInput,
@@ -150,6 +151,13 @@ export async function getAllReviews(c: Context<AppEnv>) {
 }
 
 // ── Leaderboard ──
+export async function getLeaderboard(c: Context<AppEnv>) {
+  const cursor = c.req.query("cursor");
+  const limit = parseInt(c.req.query("limit") || "100", 10);
+  const result = await leaderboardService.getLeaderboard(cursor, limit);
+  return success(c, result.items, result.meta);
+}
+
 export async function recalculateLeaderboard(c: Context<AppEnv>) {
   const result = await adminService.triggerLeaderboardRecalculation();
   return accepted(c, { message: "Leaderboard recalculation queued", jobId: result.jobId });
@@ -161,6 +169,14 @@ export async function getJudges(c: Context<AppEnv>) {
   const limit = parseInt(c.req.query("limit") || "20", 10);
   const result = await adminService.getJudges(cursor, limit);
   return success(c, result.items, result.meta);
+}
+
+
+
+export async function getJudgePerformance(c: Context<AppEnv>) {
+  const judgeId = c.req.param("id")!;
+  const performance = await adminService.getJudgePerformance(judgeId);
+  return success(c, performance);
 }
 
 // ── Community Posts (Admin CRUD) ──

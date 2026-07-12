@@ -109,7 +109,7 @@ commentRoutes.post(
       throw forbidden("You don't have access to comment on this submission");
     }
 
-    const [comment] = await db
+    const [insertedComment] = await db
       .insert(comments)
       .values({
         submissionId,
@@ -118,13 +118,28 @@ commentRoutes.post(
       })
       .returning();
 
+    if (!insertedComment) {
+      throw new Error("Failed to insert comment");
+    }
+
+    const comment = await db.query.comments.findFirst({
+      where: eq(comments.id, insertedComment.id),
+      with: {
+        author: { columns: { id: true, username: true, avatarUrl: true, role: true } },
+      },
+    });
+
+    if (!comment) {
+      throw new Error("Failed to retrieve inserted comment");
+    }
+
     const responseComment = {
       id: comment.id,
       submissionId: comment.submissionId,
-      userId: user.id,
-      userName: user.username,
-      userAvatar: user.avatarUrl,
-      userRole: user.role,
+      userId: comment.author.id,
+      userName: comment.author.username,
+      userAvatar: comment.author.avatarUrl,
+      userRole: comment.author.role,
       content: comment.message,
       createdAt: comment.createdAt,
     };

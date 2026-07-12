@@ -47,11 +47,12 @@ admin.patch("/reviews/:id/override", validate("json", overrideReviewSchema), adm
 admin.get("/reviews", adminController.getAllReviews);
 
 // ── Leaderboard ──
-admin.get("/leaderboard", adminController.recalculateLeaderboard); // GET for viewing
+admin.get("/leaderboard", adminController.getLeaderboard); // GET for viewing
 admin.post("/leaderboard/recalculate", adminController.recalculateLeaderboard); // POST returns 202
 
 // ── Judge Management ──
 admin.get("/judges", adminController.getJudges);
+admin.get("/judges/:id/performance", adminController.getJudgePerformance);
 
 // ── Community Posts (Admin CRUD) ──
 admin.post("/posts/upload-image", adminController.uploadImage);

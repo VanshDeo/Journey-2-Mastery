@@ -7,6 +7,7 @@ import { isRankSufficient, STATUS_PENDING, RANK_ORDER, NOTIFICATION_TYPES } from
 import { logger } from "../config/logger.js";
 import type { CreateSubmissionInput, UpdateSubmissionInput, UpdateProfileInput, TaskFilterInput } from "../validators/user.validator.js";
 import type { Rank } from "../db/schema.js";
+import { enrichReviewWithScores } from "./judge.service.js";
 
 // ──────────────────────────────────────────────
 // Dashboard
@@ -141,7 +142,11 @@ export async function getCompletedTasks(userId: string, cursor?: string, limit =
   });
 
   const hasMore = result.length > limit;
-  const items = hasMore ? result.slice(0, limit) : result;
+  const rawItems = hasMore ? result.slice(0, limit) : result;
+  const items = rawItems.map((s) => ({
+    ...s,
+    review: enrichReviewWithScores(s.review),
+  }));
 
   return {
     items,
@@ -268,14 +273,31 @@ export async function getSubmissions(userId: string, cursor?: string, limit = 20
     where: and(...conditions),
     with: {
       task: { columns: { id: true, title: true, category: true, difficulty: true, points: true } },
-      review: { columns: { id: true, totalScore: true, feedback: true, reviewedAt: true } },
+      review: { columns: { id: true, totalScore: true, feedback: true, reviewedAt: true, scoreBreakdown: true } },
     },
     orderBy: [desc(submissions.submittedAt)],
     limit: limit + 1,
   });
 
   const hasMore = result.length > limit;
-  const items = hasMore ? result.slice(0, limit) : result;
+  const rawItems = hasMore ? result.slice(0, limit) : result;
+
+  const items = rawItems.map((s) => ({
+    id: s.id,
+    taskId: s.taskId,
+    taskTitle: s.task?.title,
+    userId: s.userId,
+    repoId: s.repoId,
+    repoUrl: s.repoUrl,
+    repoName: s.repoName,
+    status: s.status,
+    assignedJudgeId: s.assignedJudgeId,
+    autoAssigned: s.autoAssigned,
+    submittedAt: s.submittedAt,
+    score: s.review?.totalScore ?? null,
+    review: enrichReviewWithScores(s.review),
+    task: s.task,
+  }));
 
   return {
     items,
@@ -296,13 +318,30 @@ export async function getSubmissionById(userId: string, submissionId: string) {
     with: {
       task: true,
       review: true,
+      assignedJudge: { columns: { id: true, username: true } },
     },
   });
 
   if (!submission) throw notFound("Submission", submissionId);
   if (submission.userId !== userId) throw forbidden("You can only view your own submissions");
 
-  return submission;
+  return {
+    id: submission.id,
+    taskId: submission.taskId,
+    taskTitle: submission.task?.title,
+    userId: submission.userId,
+    repoId: submission.repoId,
+    repoUrl: submission.repoUrl,
+    repoName: submission.repoName,
+    status: submission.status,
+    assignedJudgeId: submission.assignedJudgeId,
+    judgeName: submission.assignedJudge?.username,
+    autoAssigned: submission.autoAssigned,
+    submittedAt: submission.submittedAt,
+    score: submission.review?.totalScore ?? null,
+    review: enrichReviewWithScores(submission.review),
+    task: submission.task,
+  };
 }
 
 /**
@@ -375,7 +414,17 @@ export async function getProfile(userId: string) {
   });
 
   if (!user) throw notFound("User", userId);
-  return user;
+
+  // Count submissions
+  const [submissionsCountResult] = await db
+    .select({ count: count() })
+    .from(submissions)
+    .where(eq(submissions.userId, userId));
+
+  return {
+    ...user,
+    submissionCount: submissionsCountResult?.count ?? 0,
+  };
 }
 
 /**
@@ -507,4 +556,20 @@ export async function deleteAccount(userId: string) {
   });
 
   logger.info({ userId }, "User account deleted (soft delete)");
+}
+
+/**
+ * Recalculate and update the user's score in the users table.
+ */
+export async function syncUserScore(userId: string) {
+  const [scoreResult] = await db
+    .select({ totalScore: sql<number>`COALESCE(SUM(${reviews.totalScore}), 0)` })
+    .from(reviews)
+    .innerJoin(submissions, eq(reviews.submissionId, submissions.id))
+    .where(and(eq(submissions.userId, userId), eq(submissions.status, "approved")));
+
+  const newScore = Number(scoreResult?.totalScore ?? 0);
+  await db.update(users).set({ score: newScore }).where(eq(users.id, userId));
+  logger.info({ userId, score: newScore }, "Synchronized user score");
+  return newScore;
 }
