@@ -9,7 +9,7 @@ export async function proxy(request: NextRequest) {
 
   // Proxy API requests to the backend and attach Authorization header
   if (pathname.startsWith('/api/v1/')) {
-    const backendBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const backendBase = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     const backendUrl = new URL(pathname, backendBase);
     backendUrl.search = request.nextUrl.search;
     

@@ -30,7 +30,10 @@ export async function apiFetch<T>(
   path: string,
   options?: RequestInit & { skipRedirect?: boolean }
 ): Promise<T> {
-  const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
+  const baseUrl = typeof window !== 'undefined' ? '' : (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
+  if (typeof window === 'undefined') {
+    console.log('Server-side fetch baseUrl:', baseUrl, 'INTERNAL_API_URL:', process.env.INTERNAL_API_URL, 'NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+  }
   const { skipRedirect, ...fetchOptions } = options || {};
 
   const headers: HeadersInit = {
@@ -84,7 +87,7 @@ export async function apiFetchWithMeta<T>(
   path: string,
   options?: RequestInit
 ): Promise<{ data: T; meta?: { page: number; limit: number; total: number } }> {
-  const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
+  const baseUrl = typeof window !== 'undefined' ? '' : (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -125,7 +128,7 @@ export async function apiFetchWithMeta<T>(
 
 // ─── File upload helper ───
 export async function apiUpload<T>(path: string, file: File, fieldName = 'image'): Promise<T> {
-  const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
+  const baseUrl = typeof window !== 'undefined' ? '' : (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
   const formData = new FormData();
   formData.append(fieldName, file);
 
@@ -151,6 +154,6 @@ export async function apiUpload<T>(path: string, file: File, fieldName = 'image'
 
 // ─── CSV Download helper ───
 export function apiDownloadUrl(path: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
   return `${baseUrl}/api/v1${path}`;
 }

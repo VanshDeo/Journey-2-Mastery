@@ -1,0 +1,92 @@
+version: "3.8"
+
+services:
+  # PostgreSQL (Supabase-compatible)
+  postgres:
+    image: postgres:16-alpine
+    container_name: j2m-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+      - "6543:5432"   # Simulates Supavisor pooler port for local dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: j2m
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis (cache + BullMQ)
+  redis:
+    image: redis:7-alpine
+    container_name: j2m-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # API Server (Hono)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: j2m-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # BullMQ Worker Process
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: j2m-worker
+    restart: unless-stopped
+    command: npm run worker:prod
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+
+  # Frontend Server (Next.js)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: j2m-frontend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - INTERNAL_API_URL=http://api:3000
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:
