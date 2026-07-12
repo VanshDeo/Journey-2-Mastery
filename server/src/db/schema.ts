@@ -37,6 +37,26 @@ export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 // Tables
 // ──────────────────────────────────────────────
 
+export const teams = pgTable(
+  "teams",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    joinCode: text("join_code").notNull(),
+    status: text("status").notNull().default("incomplete"), // "incomplete" | "active"
+    score: integer("score").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("teams_join_code_idx").on(table.joinCode),
+  ]
+);
+
 export const users = pgTable(
   "users",
   {
@@ -57,6 +77,9 @@ export const users = pgTable(
     isActive: boolean("is_active").notNull().default(true),
     score: integer("score").notNull().default(0),
     githubAccessToken: text("github_access_token"), // Encrypted at rest
+    currentTeamId: uuid("current_team_id").references(() => teams.id, { onDelete: "set null" }),
+    teamRole: text("team_role"), // 'leader' | 'member'
+    teamJoinedAt: timestamp("team_joined_at", { withTimezone: true }),
     settings: jsonb("settings").default({
       emailNotifications: true,
       submissionUpdates: true,
@@ -110,6 +133,7 @@ export const submissions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id),
+    teamId: uuid("team_id").references(() => teams.id, { onDelete: "set null" }),
     repoId: text("repo_id").notNull(),
     repoUrl: text("repo_url").notNull(),
     repoName: text("repo_name").notNull(),
@@ -294,7 +318,7 @@ export const sessions = pgTable(
 // Relations (for Drizzle relational queries)
 // ──────────────────────────────────────────────
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   tasks: many(tasks),
   submissions: many(submissions, { relationName: "userSubmissions" }),
   assignedSubmissions: many(submissions, {
@@ -307,6 +331,15 @@ export const usersRelations = relations(users, ({ many }) => ({
   userBadges: many(userBadges),
   auditLogs: many(auditLog),
   sessions: many(sessions),
+  team: one(teams, {
+    fields: [users.currentTeamId],
+    references: [teams.id],
+  }),
+}));
+
+export const teamsRelations = relations(teams, ({ many }) => ({
+  members: many(users),
+  submissions: many(submissions),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -341,6 +374,10 @@ export const submissionsRelations = relations(submissions, ({ one, many }) => ({
   }),
   review: one(reviews),
   comments: many(comments),
+  team: one(teams, {
+    fields: [submissions.teamId],
+    references: [teams.id],
+  }),
 }));
 
 export const reviewsRelations = relations(reviews, ({ one }) => ({

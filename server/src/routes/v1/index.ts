@@ -3,6 +3,7 @@ import type { AppEnv } from "../../types/index";
 import healthRoutes from "./health.routes";
 import authRoutes from "./auth.routes";
 import userRoutes from "./user.routes";
+import teamRoutes from "./team.routes";
 import judgeRoutes from "./judge.routes";
 import adminRoutes from "./admin.routes";
 import leaderboardRoutes from "./leaderboard.routes";
@@ -24,6 +25,9 @@ v1.route("/auth", authRoutes);
 
 // User flow (dashboard, tasks, submissions, GitHub repos, profile)
 v1.route("/user", userRoutes);
+
+// Team flow
+v1.route("/teams", teamRoutes);
 
 // Judge (dashboard, review queue, reviews, workload)
 v1.route("/judge", judgeRoutes);

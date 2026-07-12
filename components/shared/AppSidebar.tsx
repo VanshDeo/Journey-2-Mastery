@@ -31,6 +31,7 @@ const userNav: NavItem[] = [
   { label: 'Leaderboard', href: '/leaderboard', icon: Trophy },
   { label: 'Posts', href: '/posts', icon: FileText },
   { label: 'Profile', href: '/profile', icon: User },
+  { label: 'Team', href: '/team', icon: Users },
   { label: 'Notifications', href: '/notifications', icon: Bell },
   { label: 'Settings', href: '/settings', icon: Settings },
 ];

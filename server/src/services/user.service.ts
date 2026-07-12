@@ -1,6 +1,6 @@
-import { eq, and, gt, sql, ilike, or, desc, asc, count } from "drizzle-orm";
+import { eq, and, gt, sql, ilike, or, desc, asc, count, isNull } from "drizzle-orm";
 import { db } from "../db/client";
-import { users, tasks, submissions, reviews, sessions } from "../db/schema";
+import { users, tasks, submissions, reviews, sessions, teams } from "../db/schema";
 import { assignJudgeQueue, notificationQueue } from "../config/queue";
 import { notFound, forbidden, conflict, AppError } from "../utils/apiError";
 import { isRankSufficient, STATUS_PENDING, RANK_ORDER, NOTIFICATION_TYPES } from "../utils/constants";
@@ -205,10 +205,10 @@ export async function createSubmission(userId: string, data: CreateSubmissionInp
 
   if (!task) throw notFound("Task", data.taskId);
 
-  // Check user rank is sufficient
+  // Check user rank is sufficient and fetch team details
   const user = await db.query.users.findFirst({
     where: eq(users.id, userId),
-    columns: { rank: true },
+    columns: { rank: true, currentTeamId: true, teamRole: true },
   });
 
   if (!user) throw notFound("User", userId);
@@ -217,17 +217,50 @@ export async function createSubmission(userId: string, data: CreateSubmissionInp
     throw new AppError("RANK_REQUIREMENT_NOT_MET", `Your rank (${user.rank}) is insufficient for this task. Required: ${task.rankRequired}`, 403);
   }
 
-  // Check for duplicate submission (same user + same task with non-rejected status)
+  // Enforce team mode submission rules
+  if (user.currentTeamId) {
+    if (user.teamRole !== "leader") {
+      throw new AppError(
+        "SUBMISSION_DISABLED_FOR_TEAM_MEMBER",
+        "Only your team leader can submit. Ask them to submit on the team's behalf.",
+        403
+      );
+    }
+
+    const team = await db.query.teams.findFirst({
+      where: eq(teams.id, user.currentTeamId),
+      columns: { status: true },
+    });
+
+    if (!team) throw notFound("Team", user.currentTeamId);
+
+    if (team.status === "incomplete") {
+      throw new AppError(
+        "TEAM_INCOMPLETE",
+        "Your team needs at least 2 members before you can submit. Share your join code to invite a teammate.",
+        403
+      );
+    }
+  }
+
+  // Check for duplicate submission
+  const duplicateConditions = [
+    eq(submissions.taskId, data.taskId),
+    or(
+      eq(submissions.status, "pending"),
+      eq(submissions.status, "in_review"),
+      eq(submissions.status, "approved")
+    )!,
+  ];
+
+  if (user.currentTeamId) {
+    duplicateConditions.push(eq(submissions.teamId, user.currentTeamId));
+  } else {
+    duplicateConditions.push(eq(submissions.userId, userId), isNull(submissions.teamId));
+  }
+
   const existingSubmission = await db.query.submissions.findFirst({
-    where: and(
-      eq(submissions.userId, userId),
-      eq(submissions.taskId, data.taskId),
-      or(
-        eq(submissions.status, "pending"),
-        eq(submissions.status, "in_review"),
-        eq(submissions.status, "approved")
-      )!
-    ),
+    where: and(...duplicateConditions),
   });
 
   if (existingSubmission) {
@@ -243,6 +276,7 @@ export async function createSubmission(userId: string, data: CreateSubmissionInp
     .values({
       taskId: data.taskId,
       userId,
+      teamId: user.currentTeamId,
       repoId: data.repoId,
       repoUrl: data.repoUrl,
       repoName: data.repoName,
@@ -263,7 +297,17 @@ export async function createSubmission(userId: string, data: CreateSubmissionInp
  * List the user's own submissions.
  */
 export async function getSubmissions(userId: string, cursor?: string, limit = 20) {
-  const conditions = [eq(submissions.userId, userId)];
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { currentTeamId: true },
+  });
+
+  const conditions = [];
+  if (user?.currentTeamId) {
+    conditions.push(eq(submissions.teamId, user.currentTeamId));
+  } else {
+    conditions.push(eq(submissions.userId, userId), isNull(submissions.teamId));
+  }
 
   if (cursor) {
     conditions.push(gt(submissions.id, cursor));
@@ -566,10 +610,37 @@ export async function syncUserScore(userId: string) {
     .select({ totalScore: sql<number>`COALESCE(SUM(${reviews.totalScore}), 0)` })
     .from(reviews)
     .innerJoin(submissions, eq(reviews.submissionId, submissions.id))
-    .where(and(eq(submissions.userId, userId), eq(submissions.status, "approved")));
+    .where(
+      and(
+        eq(submissions.userId, userId),
+        eq(submissions.status, "approved"),
+        isNull(submissions.teamId)
+      )
+    );
 
   const newScore = Number(scoreResult?.totalScore ?? 0);
   await db.update(users).set({ score: newScore }).where(eq(users.id, userId));
   logger.info({ userId, score: newScore }, "Synchronized user score");
+  return newScore;
+}
+
+/**
+ * Recalculate and update the team's score in the teams table.
+ */
+export async function syncTeamScore(teamId: string) {
+  const [scoreResult] = await db
+    .select({ totalScore: sql<number>`COALESCE(SUM(${reviews.totalScore}), 0)` })
+    .from(reviews)
+    .innerJoin(submissions, eq(reviews.submissionId, submissions.id))
+    .where(
+      and(
+        eq(submissions.teamId, teamId),
+        eq(submissions.status, "approved")
+      )
+    );
+
+  const newScore = Number(scoreResult?.totalScore ?? 0);
+  await db.update(teams).set({ score: newScore }).where(eq(teams.id, teamId));
+  logger.info({ teamId, score: newScore }, "Synchronized team score");
   return newScore;
 }

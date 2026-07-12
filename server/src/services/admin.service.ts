@@ -12,7 +12,7 @@ import { leaderboardQueue, notificationQueue } from "../config/queue";
 import { notFound, badRequest } from "../utils/apiError";
 import { reassignSubmission, computeJudgeLoadScore } from "./assignment.service";
 import { AUDIT_ACTIONS, NOTIFICATION_TYPES } from "../utils/constants";
-import { checkAndPromoteUser, syncUserScore } from "./user.service";
+import { checkAndPromoteUser, syncUserScore, syncTeamScore } from "./user.service";
 import { env } from "../config/env";
 import { enrichReviewWithScores } from "./judge.service";
 import type {
@@ -518,9 +518,13 @@ export async function overrideReview(
     }
   }
 
-  // Sync user score
+  // Sync user or team score
   if (review.submission) {
-    await syncUserScore(review.submission.userId);
+    if (review.submission.teamId) {
+      await syncTeamScore(review.submission.teamId);
+    } else {
+      await syncUserScore(review.submission.userId);
+    }
   }
 
   await db.insert(auditLog).values({

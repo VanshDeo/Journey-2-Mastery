@@ -1,6 +1,6 @@
 // ─── Roles & Ranks ───
 export type Role = 'user' | 'judge' | 'admin';
-export type Rank = 'Ronin' | 'Kenshi' | 'Samurai' | 'Shogun';
+export type Rank = 'Ronin' | 'Kenshi' | 'Samurai' | 'Shogun' | 'Team';
 export type SubmissionStatus = 'pending' | 'in_review' | 'approved' | 'rejected';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -288,4 +288,22 @@ export interface LeaderboardEntry {
   tasksCompleted: number;
   userRank: Rank;
   scoreBreakdown?: { category: string; points: number }[];
+}
+
+// ─── Teams ───
+export interface TeamMember {
+  userId: string;
+  username: string;
+  avatarUrl?: string | null;
+  role: 'leader' | 'member';
+  joinedAt: string;
+}
+
+export interface TeamDetail {
+  id: string;
+  name: string;
+  status: 'incomplete' | 'active';
+  score: number;
+  members: TeamMember[];
+  joinCode?: string;
 }

@@ -22,6 +22,13 @@
       "when": 1783826273918,
       "tag": "0002_faithful_iron_fist",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783853963507,
+      "tag": "0003_demonic_blacklash",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import type { Rank } from '@/types/api.types';
-import { Shield, Swords, Crown, Flame } from 'lucide-react';
+import { Shield, Swords, Crown, Flame, Users } from 'lucide-react';
 
 const rankConfig: Record<Rank, { icon: React.ComponentType<{ className?: string }>; bg: string; text: string; border: string; glow?: string }> = {
   Ronin: {
@@ -27,6 +27,12 @@ const rankConfig: Record<Rank, { icon: React.ComponentType<{ className?: string 
     text: 'text-amber-800',
     border: 'border-amber-300',
     glow: 'shadow-[0_0_12px_rgba(245,158,11,0.2)]',
+  },
+  Team: {
+    icon: Users,
+    bg: 'bg-indigo-50',
+    text: 'text-indigo-700',
+    border: 'border-indigo-200',
   },
 };
 

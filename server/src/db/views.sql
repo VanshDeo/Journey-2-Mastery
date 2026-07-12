@@ -1,31 +1,63 @@
 -- ============================================
 -- Leaderboard Materialized View
 -- ============================================
--- Derived from submissions + reviews + users.
+-- Derived from submissions + reviews + users + teams.
 -- Refreshed via REFRESH MATERIALIZED VIEW CONCURRENTLY by the
 -- leaderboard-recalculate BullMQ job, never computed live on read.
 --
 -- Run this SQL after Drizzle migrations to create the view.
 -- ============================================
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS leaderboard AS
+DROP MATERIALIZED VIEW IF EXISTS leaderboard;
+
+CREATE MATERIALIZED VIEW leaderboard AS
+WITH combined AS (
+  -- Solo Users
+  SELECT
+    u.id AS user_id,
+    u.username,
+    u.full_name,
+    u.avatar_url,
+    u.rank AS rank,
+    u.score AS total_score,
+    COUNT(DISTINCT CASE WHEN s.status = 'approved' THEN s.id END)::int AS tasks_completed,
+    'solo' AS entity_type
+  FROM users u
+  LEFT JOIN submissions s ON s.user_id = u.id AND s.status = 'approved' AND s.team_id IS NULL
+  WHERE u.is_active = true AND u.role = 'user'
+  GROUP BY u.id, u.username, u.full_name, u.avatar_url, u.rank, u.score
+
+  UNION ALL
+
+  -- Teams
+  SELECT
+    t.id AS user_id,
+    t.name AS username,
+    NULL AS full_name,
+    NULL AS avatar_url,
+    'Team' AS rank,
+    t.score AS total_score,
+    COUNT(DISTINCT CASE WHEN s.status = 'approved' THEN s.id END)::int AS tasks_completed,
+    'team' AS entity_type
+  FROM teams t
+  LEFT JOIN submissions s ON s.team_id = t.id AND s.status = 'approved'
+  GROUP BY t.id, t.name, t.score
+)
 SELECT
-  u.id AS user_id,
-  u.username,
-  u.full_name,
-  u.avatar_url,
-  u.rank,
-  u.score AS total_score,
-  COUNT(DISTINCT CASE WHEN s.status = 'approved' THEN s.id END)::int AS tasks_completed,
-  RANK() OVER (ORDER BY u.score DESC) AS leaderboard_rank
-FROM users u
-LEFT JOIN submissions s ON s.user_id = u.id AND s.status = 'approved'
-WHERE u.is_active = true AND u.role = 'user'
-GROUP BY u.id, u.username, u.full_name, u.avatar_url, u.rank, u.score
+  user_id,
+  username,
+  full_name,
+  avatar_url,
+  rank,
+  total_score,
+  tasks_completed,
+  entity_type,
+  RANK() OVER (ORDER BY total_score DESC) AS leaderboard_rank
+FROM combined
 ORDER BY total_score DESC;
 
 -- Unique index required for REFRESH MATERIALIZED VIEW CONCURRENTLY
-CREATE UNIQUE INDEX IF NOT EXISTS leaderboard_user_id_idx ON leaderboard (user_id);
+CREATE UNIQUE INDEX leaderboard_user_id_idx ON leaderboard (user_id);
 
 -- ============================================
 -- Helper function to refresh the leaderboard

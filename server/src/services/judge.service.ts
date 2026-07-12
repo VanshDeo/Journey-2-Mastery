@@ -7,7 +7,7 @@ import { notFound, forbidden, conflict } from "../utils/apiError";
 import { computeJudgeLoadScore } from "./assignment.service";
 import { NOTIFICATION_TYPES } from "../utils/constants";
 import type { SubmitReviewInput, EditReviewInput } from "../validators/judge.validator";
-import { checkAndPromoteUser, syncUserScore } from "./user.service";
+import { checkAndPromoteUser, syncUserScore, syncTeamScore } from "./user.service";
 
 const criteriaMap: Record<string, { name: string; maxScore: number }> = {
   codeQuality: { name: "Code Quality", maxScore: 25 },
@@ -270,8 +270,12 @@ export async function submitReview(
     await checkAndPromoteUser(submission.userId, submission.taskId);
   }
 
-  // Update user's cached score
-  await syncUserScore(submission.userId);
+  // Update user's or team's cached score
+  if (submission.teamId) {
+    await syncTeamScore(submission.teamId);
+  } else {
+    await syncUserScore(submission.userId);
+  }
 
   // Enqueue leaderboard recalculation
   await leaderboardQueue.add("recalculate", {});
@@ -347,7 +351,11 @@ export async function editReview(
 
   // Trigger leaderboard recalc if score changed
   if (totalScore !== undefined && review.submission) {
-    await syncUserScore(review.submission.userId);
+    if (review.submission.teamId) {
+      await syncTeamScore(review.submission.teamId);
+    } else {
+      await syncUserScore(review.submission.userId);
+    }
     await leaderboardQueue.add("recalculate", {});
   }
 
