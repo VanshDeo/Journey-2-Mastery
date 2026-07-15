@@ -50,6 +50,7 @@ export async function apiFetch<T>(
     ...fetchOptions,
     headers,
     credentials: 'include', // sends the httpOnly JWT cookie
+    cache: 'no-store', // Prevent Next.js from caching API requests
   });
 
   // Handle rate limiting
@@ -98,6 +99,7 @@ export async function apiFetchWithMeta<T>(
     ...options,
     headers,
     credentials: 'include',
+    cache: 'no-store', // Prevent Next.js from caching API requests
   });
 
   if (res.status === 429) {

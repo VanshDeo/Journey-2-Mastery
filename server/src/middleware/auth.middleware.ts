@@ -1,5 +1,6 @@
 import { createMiddleware } from "hono/factory";
 import jwt from "jsonwebtoken";
+import { getCookie } from "hono/cookie";
 import type { AppEnv, JWTPayload, AuthUser } from "../types/index";
 import { env } from "../config/env";
 import { redis } from "../config/redis";
@@ -8,18 +9,23 @@ import { unauthorized } from "../utils/apiError";
 
 /**
  * Authentication middleware.
- * Verifies JWT from Authorization: Bearer <token> header.
+ * Verifies JWT from Authorization: Bearer <token> header or accessToken cookie.
  * Checks JWT blacklist in Redis (for logout/revocation).
  * Attaches the authenticated user to the Hono context.
  */
 export const authMiddleware = createMiddleware<AppEnv>(async (c, next) => {
-  const authHeader = c.req.header("Authorization");
+  let token: string | undefined;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw unauthorized("Missing or invalid Authorization header");
+  const authHeader = c.req.header("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.slice(7); // Remove "Bearer "
+  } else {
+    token = getCookie(c, "accessToken");
   }
 
-  const token = authHeader.slice(7); // Remove "Bearer "
+  if (!token) {
+    throw unauthorized("Missing or invalid authentication token");
+  }
 
   let payload: JWTPayload;
   try {

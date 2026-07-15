@@ -32,6 +32,7 @@ export async function proxy(request: NextRequest) {
       // @ts-expect-error duplex is required for Request with stream body in Node
       duplex: 'half',
       redirect: 'manual',
+      cache: 'no-store', // Prevent Next.js from caching proxy requests
     });
 
     // Read response as ArrayBuffer to avoid streaming issues

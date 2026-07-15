@@ -8,8 +8,31 @@ import { rateLimiter } from "./middleware/rateLimit.middleware";
 import { errorHandler } from "./middleware/errorHandler.middleware";
 import { logger } from "./config/logger";
 import v1Routes from "./routes/v1/index";
+import { asyncLocalStorage } from "./config/queue";
 
 const app = new Hono<AppEnv>();
+
+// Store Vercel execution context for async background jobs
+app.use("*", async (c, next) => {
+  let hasExecutionContext = false;
+  try {
+    if (c.executionCtx && typeof c.executionCtx.waitUntil === "function") {
+      hasExecutionContext = true;
+    }
+  } catch {
+    // Ignore error: standard Node.js environments do not have an ExecutionContext
+  }
+
+  if (hasExecutionContext) {
+    return asyncLocalStorage.run(
+      { waitUntil: (p) => c.executionCtx.waitUntil(p) },
+      async () => {
+        await next();
+      }
+    );
+  }
+  return next();
+});
 
 // ──────────────────────────────────────────────
 // Global Middleware
