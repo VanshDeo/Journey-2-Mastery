@@ -68,8 +68,14 @@ async function run() {
     END;
     $$ LANGUAGE plpgsql
   `);
+
+  // Secure view from direct Supabase PostgREST public API bypass
+  console.log("Securing leaderboard view from public API roles...");
+  await db.execute(sql`REVOKE SELECT ON public.leaderboard FROM anon`);
+  await db.execute(sql`REVOKE SELECT ON public.leaderboard FROM authenticated`);
+  await db.execute(sql`REVOKE SELECT ON public.leaderboard FROM PUBLIC`);
   
-  console.log("Leaderboard view successfully recreated!");
+  console.log("Leaderboard view successfully recreated and secured!");
   process.exit(0);
 }
 
