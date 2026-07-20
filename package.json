@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --port 3001",
     "lint": "eslint",
-    "dev:backend": "tsx watch server/src/server.ts",
+    "dev:backend-standalone": "tsx watch server/src/server.ts",
     "worker:dev": "tsx watch server/src/jobs/workers/index.ts",
     "worker:prod": "node dist/server/jobs/workers/index.js",
     "build:backend": "tsc --project tsconfig.server.json",

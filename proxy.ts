@@ -7,47 +7,12 @@ const publicPaths = ['/login', '/auth/callback', '/', '/posts', '/api/auth/set-s
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
-  // Proxy API requests to the backend and attach Authorization header
-  if (pathname.startsWith('/api/v1/')) {
-    const backendBase = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    const backendUrl = new URL(pathname, backendBase);
-    backendUrl.search = request.nextUrl.search;
-    
-    const requestHeaders = new Headers(request.headers);
-    // Fix host header to match the backend
-    requestHeaders.set('host', new URL(backendBase).host);
-    requestHeaders.delete('connection');
-    
-    const authCookie = request.cookies.get('accessToken');
-    if (authCookie) {
-      requestHeaders.set('Authorization', `Bearer ${authCookie.value}`);
-    }
-    
-    // We use a manual fetch instead of NextResponse.rewrite because external 
-    // rewrites (different port) strip Authorization headers by default.
-    const res = await fetch(backendUrl.toString(), {
-      method: request.method,
-      headers: requestHeaders,
-      body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
-      // @ts-expect-error duplex is required for Request with stream body in Node
-      duplex: 'half',
-      redirect: 'manual',
-      cache: 'no-store', // Prevent Next.js from caching proxy requests
-    });
-
-    // Read response as ArrayBuffer to avoid streaming issues
-    const body = await res.arrayBuffer();
-    
-    const responseHeaders = new Headers(res.headers);
-    responseHeaders.delete('content-encoding');
-    responseHeaders.delete('transfer-encoding');
-    responseHeaders.delete('connection');
-
-    return new NextResponse(body, {
-      status: res.status,
-      statusText: res.statusText,
-      headers: responseHeaders,
-    });
+  // ─── Skip all API routes ───
+  // /api/v1/* is handled by the Hono catch-all route (app/api/v1/[[...route]]/route.ts).
+  // /api/auth/* is handled by Next.js route handlers.
+  // These have their own auth (Bearer token / middleware), so proxy must NOT interfere.
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
   }
 
   // Intercept auth callback to route through the set-session API

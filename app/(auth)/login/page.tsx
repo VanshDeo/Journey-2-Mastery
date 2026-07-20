@@ -11,7 +11,7 @@ function GithubIcon({ className }: { className?: string }) {
 }
 
 export default function LoginPage() {
-  const loginUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/github`;
+  const loginUrl = '/api/v1/auth/github';
 
   return (
     <div className="min-h-screen bg-off-white flex">
