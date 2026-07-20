@@ -1,0 +1,39 @@
+import jwt from "jsonwebtoken";
+import type { JWTPayload, AuthUser } from "@/types";
+import { env } from "../config/env";
+import { redis } from "../config/redis";
+import { CACHE_KEYS } from "../utils/constants";
+import { unauthorized } from "../utils/apiError";
+
+export async function requireAuth(req: Request): Promise<AuthUser> {
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw unauthorized("Missing or invalid Authorization header");
+  }
+
+  const token = authHeader.slice(7);
+
+  let payload: JWTPayload;
+  try {
+    payload = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError) {
+      throw unauthorized("Token has expired");
+    }
+    throw unauthorized("Invalid token");
+  }
+
+  const isBlacklisted = await redis.get(CACHE_KEYS.jwtBlacklist(payload.jti));
+  if (isBlacklisted) {
+    throw unauthorized("Token has been revoked");
+  }
+
+  return {
+    id: payload.sub,
+    role: payload.role,
+    rank: payload.rank,
+    username: payload.username,
+    jti: payload.jti,
+  };
+}
