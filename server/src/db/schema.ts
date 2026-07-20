@@ -101,6 +101,7 @@ export const tasks = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     title: text("title").notNull(),
+    shortDescription: text("short_description").notNull().default(""),
     description: text("description").notNull(),
     category: text("category").notNull(),
     difficulty: text("difficulty", { enum: DIFFICULTIES }).notNull(),
@@ -108,6 +109,10 @@ export const tasks = pgTable(
       .notNull()
       .default("Ronin"),
     points: integer("points").notNull().default(0),
+    bonusPoints: integer("bonus_points").notNull().default(0),
+    deadline: timestamp("deadline", { withTimezone: true }),
+    participantsCount: integer("participants_count").notNull().default(0),
+    requirements: text("requirements"),
     createdBy: uuid("created_by")
       .notNull()
       .references(() => users.id),

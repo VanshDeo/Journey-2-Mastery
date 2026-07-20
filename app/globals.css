@@ -14,7 +14,8 @@
   --color-muted-text: #777777;
   --color-borders: #D8D0C8;
   --font-sans: var(--font-inter);
-  --font-serif: var(--font-cormorant);
+  --font-serif: var(--font-zilla);
+  --font-marker: var(--font-marker);
   --font-onari: var(--font-onari-local);
 
   /* Animation tokens */
@@ -66,10 +67,23 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
   overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('/images/ninja-pattern.png');
+  background-repeat: repeat;
+  background-size: 400px;
+  opacity: 0.25;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Base custom utilities */
@@ -143,6 +157,8 @@ body {
   border-radius: 6px !important;
   padding: 12px 16px !important;
   margin: 12px 0 !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
 }
 
 .prose code,
@@ -155,4 +171,21 @@ body {
   background-color: transparent !important;
   padding: 0 !important;
   font-family: monospace !important;
+}
+
+/* Lenis Smooth Scroll Fix */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
 }

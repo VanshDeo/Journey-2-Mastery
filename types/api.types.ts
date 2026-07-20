@@ -38,12 +38,16 @@ export interface CompleteProfilePayload {
 export interface Task {
   id: string;
   title: string;
+  shortDescription?: string;
   description: string;
+  requirements?: string;
   category: string;
   categoryName?: string;
   points: number;
+  bonusPoints?: number;
   difficulty: Difficulty;
   rankRequired?: Rank;
+  deadline?: string;
   isActive?: boolean;
   status?: SubmissionStatus | 'submitted';
   rubric?: string;
