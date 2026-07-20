@@ -21,6 +21,14 @@ export interface User {
   bio?: string;
   rank: Rank;
   score: number;
+  currentTeamId?: string | null;
+  teamRole?: string | null;
+  teamJoinedAt?: string | null;
+  team?: {
+    id: string;
+    name: string;
+    joinCode: string;
+  } | null;
   createdAt?: string;
 }
 

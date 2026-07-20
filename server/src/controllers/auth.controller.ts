@@ -62,7 +62,7 @@ export async function githubCallback(c: Context<AppEnv>) {
     redirectUrl.searchParams.set("refreshToken", tokens.refreshToken);
 
     return c.redirect(redirectUrl.toString());
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("❌ githubCallback error:", err);
     if (err instanceof Error) {
       console.error("Stack trace:", err.stack);

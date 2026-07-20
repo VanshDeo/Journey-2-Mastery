@@ -183,8 +183,8 @@ export async function findOrCreateUser(
       .returning();
 
     if (updatedUser) {
-      updatedUser.role = updatedUser.role.trim() as any;
-      updatedUser.rank = updatedUser.rank.trim() as any;
+      updatedUser.role = updatedUser.role.trim() as 'user' | 'judge' | 'admin';
+      updatedUser.rank = updatedUser.rank.trim() as 'Ronin' | 'Kenshi' | 'Samurai' | 'Shogun';
     }
     return updatedUser!;
   }
@@ -211,8 +211,8 @@ export async function findOrCreateUser(
   );
 
   if (newUser) {
-    newUser.role = newUser.role.trim() as any;
-    newUser.rank = newUser.rank.trim() as any;
+    newUser.role = newUser.role.trim() as 'user' | 'judge' | 'admin';
+    newUser.rank = newUser.rank.trim() as 'Ronin' | 'Kenshi' | 'Samurai' | 'Shogun';
   }
   return newUser!;
 }
@@ -362,8 +362,8 @@ export async function completeProfile(
     .returning();
 
   if (updatedUser) {
-    updatedUser.role = updatedUser.role.trim() as any;
-    updatedUser.rank = updatedUser.rank.trim() as any;
+    updatedUser.role = updatedUser.role.trim() as 'user' | 'judge' | 'admin';
+    updatedUser.rank = updatedUser.rank.trim() as 'Ronin' | 'Kenshi' | 'Samurai' | 'Shogun';
   }
   return updatedUser!;
 }
@@ -377,13 +377,16 @@ export async function getCurrentUser(userId: string) {
     columns: {
       githubAccessToken: false, // Never expose
     },
+    with: {
+      team: true,
+    },
   });
 
   if (!user) {
     throw notFound("User", userId);
   }
-  user.role = user.role.trim() as any;
-  user.rank = user.rank.trim() as any;
+  user.role = user.role.trim() as 'user' | 'judge' | 'admin';
+  user.rank = user.rank.trim() as 'Ronin' | 'Kenshi' | 'Samurai' | 'Shogun';
   return user;
 }
 

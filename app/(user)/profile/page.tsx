@@ -324,9 +324,9 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="z-10 relative">
                <div className="grid grid-cols-1 gap-y-5">
-                  <div className="grid grid-cols-3 items-center"><span className="text-sm font-medium text-secondary-text flex items-center gap-2"><Users className="h-4 w-4 text-muted-text"/> Team</span><span className="col-span-2 text-sm font-semibold text-primary-text">Not in a team yet</span></div>
-                  <div className="grid grid-cols-3 items-center"><span className="text-sm font-medium text-secondary-text flex items-center gap-2"><User className="h-4 w-4 text-muted-text"/> Team Role</span><span className="col-span-2 text-sm font-semibold text-primary-text">—</span></div>
-                  <div className="grid grid-cols-3 items-center"><span className="text-sm font-medium text-secondary-text flex items-center gap-2"><Clock className="h-4 w-4 text-muted-text"/> Joined At</span><span className="col-span-2 text-sm font-semibold text-primary-text">—</span></div>
+                  <div className="grid grid-cols-3 items-center"><span className="text-sm font-medium text-secondary-text flex items-center gap-2"><Users className="h-4 w-4 text-muted-text"/> Team</span><span className="col-span-2 text-sm font-semibold text-primary-text">{displayUser.team ? displayUser.team.name : 'Not in a team yet'}</span></div>
+                  <div className="grid grid-cols-3 items-center"><span className="text-sm font-medium text-secondary-text flex items-center gap-2"><User className="h-4 w-4 text-muted-text"/> Team Role</span><span className="col-span-2 text-sm font-semibold text-primary-text capitalize">{displayUser.teamRole || '—'}</span></div>
+                  <div className="grid grid-cols-3 items-center"><span className="text-sm font-medium text-secondary-text flex items-center gap-2"><Clock className="h-4 w-4 text-muted-text"/> Joined At</span><span className="col-span-2 text-sm font-semibold text-primary-text">{displayUser.teamJoinedAt ? new Date(displayUser.teamJoinedAt).toLocaleDateString() : '—'}</span></div>
                 </div>
             </CardContent>
           </Card>
