@@ -73,14 +73,21 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-6xl space-y-6 animate-in pb-20">
-      {/* Header */}
-      <div className="mb-6 relative">
-        <h1 className="font-serif text-4xl font-bold text-primary-text flex items-center gap-3">
-          Profile 
-          <NinjaStarIcon className="w-7 h-7 text-primary-text opacity-90 drop-shadow-sm" />
-        </h1>
-        <p className="text-sm text-secondary-text mt-1">Manage your profile information and preferences</p>
+    <div className="max-w-6xl space-y-8 pb-12 animate-in">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-card-bg border border-borders px-8 py-10 md:py-16 shadow-sm">
+        <div className="absolute inset-0 z-0 opacity-40 pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, black 60%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent)' }}>
+          <Image src="/images/dashboard-header.png" alt="Landscape" fill className="object-cover mix-blend-multiply scale-105 grayscale contrast-125 brightness-110" />
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold text-primary-text drop-shadow-sm flex items-center gap-3">
+              <User className="h-10 w-10 text-japan-red" />
+              Warrior Profile
+            </h1>
+            <p className="text-secondary-text mt-4 font-medium text-lg">Manage your identity and inspect your legacy.</p>
+          </div>
+        </div>
       </div>
 
       {/* Top Banner Row */}

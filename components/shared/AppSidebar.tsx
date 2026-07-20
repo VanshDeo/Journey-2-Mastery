@@ -15,7 +15,7 @@ import Image from 'next/image';
 import {
   LayoutDashboard, ListChecks, Send, Trophy, FileText, User, Bell, Settings,
   Scale, ClipboardList, Star, Users, Shield, BookOpen, BarChart3, Newspaper,
-  FileBarChart, LogOut, Menu, PanelLeft,
+  FileBarChart, LogOut, Menu, PanelLeft, Home,
 } from 'lucide-react';
 import type { Role } from '@/types/api.types';
 
@@ -236,7 +236,14 @@ export default function AppSidebar({ role, children }: AppSidebarProps) {
             </div>
 
             <div className="flex-1" />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <Link href="/">
+                <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-secondary-bg text-secondary-text hover:text-primary-text transition-colors text-sm font-medium cursor-pointer">
+                  <Home className="h-4 w-4" />
+                  <span className="hidden sm:inline">Home</span>
+                </button>
+              </Link>
+              <div className="h-4 w-px bg-borders" />
               <NotificationBell />
             </div>
           </div>

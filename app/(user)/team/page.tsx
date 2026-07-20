@@ -20,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -40,6 +39,15 @@ import {
   Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
+
+function NinjaStarIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path fillRule="evenodd" clipRule="evenodd" d="M12 1.5C12 1.5 13.5 8 17 10C19.5 11.5 22.5 12 22.5 12C22.5 12 19.5 12.5 17 14C13.5 16 12 22.5 12 22.5C12 22.5 10.5 16 7 14C4.5 12.5 1.5 12 1.5 12C1.5 12 4.5 11.5 7 10C10.5 8 12 1.5 12 1.5ZM12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" />
+    </svg>
+  );
+}
 
 export default function TeamPage() {
   const { data: currentUser } = useSession();
@@ -62,7 +70,6 @@ export default function TeamPage() {
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [disbandConfirm, setDisbandConfirm] = useState('');
-  const [transferringMemberId, setTransferringMemberId] = useState<string | null>(null);
 
   if (isLoading) return <LoadingSkeleton variant="form" />;
   if (isError) return <ErrorState error={error} onRetry={refetch} />;
@@ -179,7 +186,6 @@ export default function TeamPage() {
         {
           onSuccess: () => {
             toast.success(`Leadership transferred to ${memberName}.`);
-            setTransferringMemberId(null);
           },
           onError: (err) => {
             toast.error(err.message || 'Failed to transfer leadership.');
@@ -199,38 +205,46 @@ export default function TeamPage() {
   // ──────────────────────────────────────────────
   if (!team) {
     return (
-      <div className="space-y-8 max-w-4xl mx-auto py-4">
-        <div className="text-center space-y-2">
-          <h1 className="font-serif text-4xl font-bold text-primary-text flex items-center justify-center gap-3">
-            <TeamIcon className="h-9 w-9 text-japan-red" />
-            Team Mode
-          </h1>
-          <p className="text-secondary-text max-w-xl mx-auto">
-            Choose your path. Assemble a team of 2 to 3 players to collaborate and submit tasks together.
-          </p>
+      <div className="space-y-8 pb-12">
+        {/* Header Banner */}
+        <div className="relative overflow-hidden rounded-2xl bg-card-bg border border-borders px-8 py-12 md:py-16 shadow-sm">
+          <div className="absolute inset-0 z-0 opacity-40 pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, black 50%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent)' }}>
+            <Image src="/images/dashboard-header.png" alt="Landscape" fill className="object-cover mix-blend-multiply grayscale contrast-125 brightness-110" />
+          </div>
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div>
+              <h1 className="font-serif text-4xl md:text-5xl font-bold text-primary-text drop-shadow-sm flex items-center gap-3">
+                <TeamIcon className="h-10 w-10 text-japan-red" />
+                Dojo of Teams
+              </h1>
+              <p className="text-secondary-text mt-4 font-medium text-lg max-w-2xl">
+                Choose your path. Assemble a clan of 2 to 3 warriors to collaborate and face challenges together.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
           {/* Create Team Card */}
-          <Card className="hover:shadow-lg transition-all duration-300 border-borders/60 flex flex-col justify-between">
+          <Card className="hover:shadow-lg transition-all duration-300 border-borders/60 flex flex-col justify-between bg-white/80">
             <CardHeader className="space-y-1">
-              <div className="w-12 h-12 rounded-lg bg-japan-red/10 flex items-center justify-center mb-2">
+              <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center mb-2 border border-japan-red/20">
                 <Plus className="h-6 w-6 text-japan-red" />
               </div>
-              <CardTitle className="font-serif text-2xl">Create a Team</CardTitle>
+              <CardTitle className="font-serif text-2xl">Found a Clan</CardTitle>
               <p className="text-sm text-muted-text">
-                Start a new team as the leader. You will generate a join code to invite teammates.
+                Start a new team as the leader. You will generate a join code to invite your fellow warriors.
               </p>
             </CardHeader>
             <CardContent className="pt-2">
               <form onSubmit={handleCreateTeam} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="team-name">Team Name</Label>
+                  <Label htmlFor="team-name" className="font-bold">Clan Name</Label>
                   <Input
                     id="team-name"
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
-                    placeholder="Enter team name"
+                    placeholder="Enter clan name"
                     className="h-10"
                     maxLength={100}
                     required
@@ -238,46 +252,46 @@ export default function TeamPage() {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-japan-red hover:bg-hover-red text-white h-10 cursor-pointer"
+                  className="w-full bg-japan-red hover:bg-hover-red text-white h-10 cursor-pointer font-bold"
                   disabled={createTeamMutation.isPending}
                 >
-                  {createTeamMutation.isPending ? 'Creating...' : 'Create Team'}
+                  {createTeamMutation.isPending ? 'Forging...' : 'Found Clan'}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
           {/* Join Team Card */}
-          <Card className="hover:shadow-lg transition-all duration-300 border-borders/60 flex flex-col justify-between">
+          <Card className="hover:shadow-lg transition-all duration-300 border-borders/60 flex flex-col justify-between bg-white/80">
             <CardHeader className="space-y-1">
-              <div className="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center mb-2">
+              <div className="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center mb-2 border border-indigo-200">
                 <Key className="h-6 w-6 text-indigo-600" />
               </div>
-              <CardTitle className="font-serif text-2xl">Join a Team</CardTitle>
+              <CardTitle className="font-serif text-2xl">Join a Clan</CardTitle>
               <p className="text-sm text-muted-text">
-                Enter a 6-character join code shared by a team leader to play as a team member.
+                Enter a 6-character secret code shared by a clan leader to join their ranks.
               </p>
             </CardHeader>
             <CardContent className="pt-2">
               <form onSubmit={handleJoinTeam} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="join-code">Join Code</Label>
+                  <Label htmlFor="join-code" className="font-bold">Secret Code</Label>
                   <Input
                     id="join-code"
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value)}
                     placeholder="e.g. AB12XY"
-                    className="h-10 uppercase tracking-widest text-center font-bold"
+                    className="h-10 uppercase tracking-widest text-center font-bold text-lg"
                     maxLength={6}
                     required
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-10 cursor-pointer"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-10 cursor-pointer font-bold"
                   disabled={joinTeamMutation.isPending}
                 >
-                  {joinTeamMutation.isPending ? 'Joining...' : 'Join Team'}
+                  {joinTeamMutation.isPending ? 'Joining...' : 'Join Clan'}
                 </Button>
               </form>
             </CardContent>
@@ -295,20 +309,33 @@ export default function TeamPage() {
   const isActive = team.status === 'active';
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <TeamIcon className="h-7 w-7 text-japan-red" />
-        <h1 className="font-serif text-3xl font-bold text-primary-text">
-          Team Dashboard
-        </h1>
+    <div className="space-y-8 pb-12">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-2xl bg-card-bg border border-borders px-8 py-10 md:py-16 shadow-sm">
+        <div className="absolute inset-0 z-0 opacity-40 pointer-events-none" style={{ maskImage: 'linear-gradient(to bottom, black 60%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent)' }}>
+          <Image src="/images/dashboard-header.png" alt="Landscape" fill className="object-cover mix-blend-multiply scale-105 grayscale contrast-125 brightness-110" />
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold text-primary-text drop-shadow-sm flex items-center gap-3">
+              <TeamIcon className="h-10 w-10 text-japan-red" />
+              Clan Command Center
+            </h1>
+            <p className="text-secondary-text mt-4 font-medium text-lg">Manage your team and track your shared glory.</p>
+          </div>
+          <div className="bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-sm border border-borders flex items-center gap-3">
+             <NinjaStarIcon className="w-5 h-5 text-japan-red" />
+             <span className="font-bold text-lg">{team.score} Honor Points</span>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (Team Identity and Members) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Team Name Card */}
-          <Card>
-            <CardContent className="p-6">
+          <Card className="border-borders shadow-sm bg-white/80">
+            <CardContent className="p-8">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   {editingName ? (
@@ -317,18 +344,18 @@ export default function TeamPage() {
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                         placeholder="New Team Name"
-                        className="h-9"
+                        className="h-10 font-bold"
                       />
-                      <Button size="sm" onClick={handleUpdateName} disabled={updateNameMutation.isPending}>
+                      <Button size="icon" onClick={handleUpdateName} disabled={updateNameMutation.isPending} className="bg-japan-red hover:bg-hover-red text-white cursor-pointer h-10 w-10 shrink-0">
                         <Check className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditingName(false)}>
+                      <Button size="icon" variant="ghost" onClick={() => setEditingName(false)} className="h-10 w-10 shrink-0 border border-borders">
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <h2 className="font-serif text-2xl font-bold text-primary-text">{team.name}</h2>
+                    <div className="flex items-center gap-3">
+                      <h2 className="font-serif text-3xl font-bold text-primary-text">{team.name}</h2>
                       {isLeader && (
                         <Button
                           size="icon"
@@ -337,19 +364,19 @@ export default function TeamPage() {
                             setNewName(team.name);
                             setEditingName(true);
                           }}
-                          className="h-8 w-8 text-muted-text hover:text-primary-text cursor-pointer"
+                          className="h-8 w-8 text-muted-text hover:text-japan-red cursor-pointer border border-transparent hover:border-japan-red/20 hover:bg-red-50"
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
                   )}
-                  <p className="text-xs text-muted-text mt-1">ID: {team.id}</p>
+                  <p className="text-xs text-muted-text mt-2 font-mono">ID: {team.id}</p>
                 </div>
                 <Badge
                   variant="outline"
                   className={cn(
-                    'capitalize font-medium px-2.5 py-0.5',
+                    'capitalize font-bold px-3 py-1 text-sm tracking-wider',
                     isActive
                       ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                       : 'border-amber-200 bg-amber-50 text-amber-700'
@@ -362,36 +389,39 @@ export default function TeamPage() {
           </Card>
 
           {/* Members Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Team Members ({team.members.length}/3)</CardTitle>
+          <Card className="border-borders shadow-sm bg-white/80">
+            <CardHeader className="border-b border-borders/50 bg-card-bg">
+              <CardTitle className="text-lg font-serif flex items-center gap-2">
+                <Users className="w-5 h-5 text-japan-red" />
+                Clan Members ({team.members.length}/3)
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-6">
               {team.members.map((member) => (
-                <div key={member.userId} className="flex items-center justify-between p-3 rounded-lg border border-borders bg-card-bg">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
+                <div key={member.userId} className={cn("flex items-center justify-between p-4 rounded-xl border transition-all", member.userId === currentUser?.id ? 'border-japan-red/40 bg-red-50/50 shadow-sm' : 'border-borders bg-white')}>
+                  <div className="flex items-center gap-4">
+                    <Avatar className={cn("h-12 w-12 border-2", member.role === 'leader' ? 'border-[#D4AF37]' : 'border-borders')}>
                       {member.avatarUrl && <AvatarImage src={member.avatarUrl} />}
-                      <AvatarFallback>{member.username.charAt(0).toUpperCase()}</AvatarFallback>
+                      <AvatarFallback className="font-bold">{member.username.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm text-primary-text">{member.username}</span>
+                        <span className="font-bold text-base text-primary-text">{member.username}</span>
                         {member.userId === currentUser?.id && (
-                          <span className="text-[10px] text-muted-text font-semibold px-1.5 py-0.5 rounded bg-secondary-bg border border-borders">
+                          <span className="text-[10px] text-japan-red font-bold px-1.5 py-0.5 rounded uppercase tracking-wider bg-japan-red/10">
                             You
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] text-muted-text mt-0.5">
+                      <p className="text-xs text-muted-text mt-1">
                         Joined {new Date(member.joinedAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={member.role === 'leader' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-borders text-secondary-text'}>
-                      {member.role === 'leader' ? <Crown className="h-3 w-3 mr-1" /> : null}
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className={cn("px-2.5 py-1 text-xs font-bold uppercase", member.role === 'leader' ? 'border-[#D4AF37]/50 bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-borders text-secondary-text bg-secondary-bg')}>
+                      {member.role === 'leader' ? <Crown className="h-3.5 w-3.5 mr-1" /> : null}
                       {member.role}
                     </Badge>
 
@@ -403,7 +433,7 @@ export default function TeamPage() {
                           variant="ghost"
                           title="Transfer Leadership"
                           onClick={() => handleTransferLeadership(member.userId, member.username)}
-                          className="h-8 w-8 text-amber-600 hover:bg-amber-50 cursor-pointer"
+                          className="h-8 w-8 text-amber-600 hover:bg-amber-50 cursor-pointer border border-transparent hover:border-amber-200"
                         >
                           <Crown className="h-4 w-4" />
                         </Button>
@@ -412,7 +442,7 @@ export default function TeamPage() {
                           variant="ghost"
                           title="Remove Member"
                           onClick={() => handleKickMember(member.userId, member.username)}
-                          className="h-8 w-8 text-red-500 hover:bg-red-50 cursor-pointer"
+                          className="h-8 w-8 text-red-500 hover:bg-red-50 cursor-pointer border border-transparent hover:border-red-200"
                         >
                           <UserMinus className="h-4 w-4" />
                         </Button>
@@ -429,35 +459,38 @@ export default function TeamPage() {
         <div className="space-y-6">
           {/* Join Code Card (Leader Only) */}
           {isLeader && team.joinCode && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Invite Teammates</CardTitle>
+            <Card className="border-borders shadow-sm bg-white/80">
+              <CardHeader className="border-b border-borders/50 bg-card-bg">
+                <CardTitle className="text-base font-serif flex items-center gap-2">
+                  <Key className="w-5 h-5 text-indigo-500" />
+                  Invite Warriors
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-xs text-muted-text">
-                  Share this join code with your teammate. Up to 3 members can join.
+              <CardContent className="space-y-4 p-6">
+                <p className="text-sm text-secondary-text">
+                  Share this secret code with your allies. Up to 3 members can join.
                 </p>
-                <div className="flex items-center gap-2 bg-secondary-bg border border-borders p-3 rounded-lg justify-between">
-                  <span className="font-mono text-xl font-bold tracking-widest text-primary-text select-all">
+                <div className="flex items-center gap-2 bg-secondary-bg border border-borders p-4 rounded-xl justify-between shadow-inner">
+                  <span className="font-mono text-2xl font-bold tracking-[0.2em] text-primary-text select-all">
                     {team.joinCode}
                   </span>
                   <Button
                     size="icon"
                     variant="ghost"
                     onClick={() => copyToClipboard(team.joinCode!)}
-                    className="h-8 w-8 cursor-pointer"
+                    className="h-10 w-10 cursor-pointer hover:bg-white hover:shadow-sm transition-all"
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy className="h-5 w-5 text-indigo-600" />
                   </Button>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full text-xs h-9 gap-1.5 cursor-pointer"
+                  className="w-full text-sm font-bold h-10 gap-2 cursor-pointer border-borders hover:bg-secondary-bg"
                   onClick={handleRegenerateCode}
                   disabled={regenerateCodeMutation.isPending}
                 >
-                  <RefreshCw className="h-3.5 w-3.5" />
+                  <RefreshCw className="h-4 w-4 text-muted-text" />
                   Regenerate Code
                 </Button>
               </CardContent>
@@ -465,25 +498,31 @@ export default function TeamPage() {
           )}
 
           {/* Team Info / Stats Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Team Stats</CardTitle>
+          <Card className="border-borders shadow-sm bg-white/80">
+            <CardHeader className="border-b border-borders/50 bg-card-bg">
+              <CardTitle className="text-base font-serif flex items-center gap-2">
+                <Award className="w-5 h-5 text-japan-red" />
+                Clan Stats
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-xs">
-              <div className="flex items-center justify-between py-2 border-b border-borders/50">
-                <span className="text-muted-text flex items-center gap-1.5"><Award className="h-4 w-4 text-japan-red" /> Team Score</span>
-                <span className="font-bold text-sm text-japan-red">{team.score} pts</span>
+            <CardContent className="space-y-4 p-6">
+              <div className="flex items-center justify-between py-3 border-b border-borders/50">
+                <span className="text-secondary-text font-medium flex items-center gap-2"><NinjaStarIcon className="h-5 w-5 text-japan-red opacity-70" /> Honor Points</span>
+                <span className="font-bold text-lg text-japan-red">{team.score} pts</span>
               </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-muted-text flex items-center gap-1.5"><Users className="h-4 w-4 text-indigo-500" /> Size</span>
-                <span className="font-medium text-secondary-text">{team.members.length}/3 members</span>
+              <div className="flex items-center justify-between py-3">
+                <span className="text-secondary-text font-medium flex items-center gap-2"><Users className="h-5 w-5 text-indigo-500 opacity-70" /> Size</span>
+                <span className="font-bold text-lg text-primary-text">{team.members.length}/3 warriors</span>
               </div>
 
               {!isActive && (
-                <div className="mt-4 p-3 border border-amber-200 bg-amber-50 rounded-lg text-amber-800 space-y-1.5">
-                  <p className="font-medium">Incomplete Team</p>
-                  <p className="text-[10px] leading-relaxed">
-                    You need at least 2 members before you can submit tasks. Share your join code to invite teammates.
+                <div className="mt-4 p-4 border border-amber-200 bg-amber-50 rounded-xl text-amber-800 space-y-2">
+                  <p className="font-bold flex items-center gap-2">
+                    <Award className="w-4 h-4" />
+                    Incomplete Clan
+                  </p>
+                  <p className="text-xs leading-relaxed opacity-90">
+                    You need at least 2 members before you can submit tasks. Share your secret code to invite allies.
                   </p>
                 </div>
               )}
@@ -491,52 +530,50 @@ export default function TeamPage() {
           </Card>
 
           {/* Leaving / Disbanding Operations */}
-          <Card className={cn('border-red-200', !isLeader && 'border-borders/60')}>
-            <CardHeader>
-              <CardTitle className="text-base text-red-600 flex items-center gap-2">
-                {isLeader ? 'Disband Team' : 'Leave Team'}
+          <Card className={cn('border-borders shadow-sm bg-white/80', isLeader && 'border-red-200 bg-red-50/30')}>
+            <CardHeader className="border-b border-borders/50 bg-transparent">
+              <CardTitle className="text-base text-red-600 flex items-center gap-2 font-bold uppercase tracking-wider text-sm">
+                {isLeader ? 'Disband Clan' : 'Leave Clan'}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-6">
               {isLeader ? (
                 <>
-                  <p className="text-xs text-secondary-text">
-                    Disbanding will immediately kick all members and permanently delete the team.
+                  <p className="text-sm text-secondary-text">
+                    Disbanding will immediately kick all members and permanently delete the clan.
                   </p>
                   <div className="space-y-2">
-                    <Label className="text-xs">Type <strong>DISBAND</strong> to confirm</Label>
+                    <Label className="text-sm font-bold">Type <strong className="text-red-600">DISBAND</strong> to confirm</Label>
                     <Input
                       value={disbandConfirm}
                       onChange={(e) => setDisbandConfirm(e.target.value)}
                       placeholder="DISBAND"
-                      className="h-9 text-sm"
+                      className="h-10 text-base border-red-200 focus-visible:ring-red-500"
                     />
                   </div>
                   <Button
                     variant="destructive"
-                    size="sm"
-                    className="w-full h-9 cursor-pointer"
+                    className="w-full h-10 cursor-pointer font-bold bg-red-600 hover:bg-red-700 text-white"
                     disabled={disbandConfirm !== 'DISBAND' || disbandTeamMutation.isPending}
                     onClick={handleDisbandTeam}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    {disbandTeamMutation.isPending ? 'Disbanding...' : 'Disband Team'}
+                    {disbandTeamMutation.isPending ? 'Disbanding...' : 'Disband Clan'}
                   </Button>
                 </>
               ) : (
                 <>
-                  <p className="text-xs text-secondary-text">
+                  <p className="text-sm text-secondary-text">
                     You will immediately return to solo play. Your previous solo submissions remain yours.
                   </p>
                   <Button
                     variant="destructive"
-                    size="sm"
-                    className="w-full h-9 cursor-pointer"
+                    className="w-full h-10 cursor-pointer font-bold bg-red-600 hover:bg-red-700 text-white"
                     onClick={handleLeaveTeam}
                     disabled={leaveTeamMutation.isPending}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
-                    {leaveTeamMutation.isPending ? 'Leaving...' : 'Leave Team'}
+                    {leaveTeamMutation.isPending ? 'Leaving...' : 'Leave Clan'}
                   </Button>
                 </>
               )}
