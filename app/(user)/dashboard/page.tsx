@@ -365,7 +365,7 @@ export default function UserDashboard() {
                       <p className="text-xs text-muted-text truncate">{sub.taskTitle || 'Unknown Task'}</p>
                     </div>
                     <span className="text-xs text-muted-text whitespace-nowrap">
-                      {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString() : 'Just now'}
+                      {sub.submittedAt ? new Date(sub.submittedAt).toLocaleDateString() : 'Just now'}
                     </span>
                   </div>
                 ))

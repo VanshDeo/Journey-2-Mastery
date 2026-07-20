@@ -10,11 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, ArrowRight, FileText, Clock, Users, Hourglass, CheckCircle2, Trophy, Activity } from 'lucide-react';
+import { Search, Clock, Hourglass, CheckCircle2, Trophy, Activity } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import type { Difficulty, Task } from '@/types/api.types';
+import type { Difficulty, Task, Submission } from '@/types/api.types';
 
 const difficultyColors: Record<Difficulty, string> = {
   easy: 'bg-emerald-50 text-emerald-600 border-emerald-200',
@@ -51,13 +51,13 @@ export default function TasksPage() {
 
   const isLoading = isAvailLoading || isCompLoading || isPendLoading;
 
-  const completedTasks = (completedSubmissions as any[])?.map((s) => s.task as Task) || [];
-  const pendingTasks = (pendingSubmissions as any[])?.map((s) => s.task as Task) || [];
+  const completedTasks = completedSubmissions?.map((s) => s.task as Task) || [];
+  const pendingTasks = pendingSubmissions?.map((s) => s.task as Task) || [];
 
   const filterTasks = (taskList: Task[]) => {
     return taskList.filter((t) => {
       if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
-      if (category && t.categoryId !== category) return false;
+      if (category && t.category !== category) return false;
       if (difficulty && t.difficulty !== difficulty) return false;
       return true;
     });
@@ -214,7 +214,7 @@ export default function TasksPage() {
                   </div>
                   
                   {/* Right: Points + Button */}
-                  <div className="flex flex-col items-center justify-center gap-4 min-w-[120px] shrink-0">
+                  <div className="flex flex-col items-center justify-center gap-4 min-w-30 shrink-0">
                     <div className="text-center">
                       <div className="font-serif text-3xl font-bold text-japan-red drop-shadow-sm">{task.points} pts</div>
                       <div className="text-xs font-bold text-secondary-text mt-1 uppercase tracking-wider">Total Points</div>

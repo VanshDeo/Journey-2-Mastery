@@ -65,6 +65,7 @@ export interface Category {
 export interface Submission {
   id: string;
   taskId: string;
+  task?: Task;
   taskTitle?: string;
   userId: string;
   userName?: string;

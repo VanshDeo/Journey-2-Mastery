@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api-client';
-import type { Task, Category } from '@/types/api.types';
+import type { Task, Category, Submission } from '@/types/api.types';
 
 interface TaskFilters {
   category?: string;
@@ -35,17 +35,17 @@ export function useTaskDetail(taskId: string) {
 }
 
 export function useCompletedTasks() {
-  return useQuery<Task[], Error>({
+  return useQuery<Submission[], Error>({
     queryKey: ['user', 'tasks', 'completed'],
-    queryFn: () => apiFetch<Task[]>('/user/tasks/completed'),
+    queryFn: () => apiFetch<Submission[]>('/user/tasks/completed'),
     staleTime: 60 * 1000,
   });
 }
 
 export function usePendingTasks() {
-  return useQuery<Task[], Error>({
+  return useQuery<Submission[], Error>({
     queryKey: ['user', 'tasks', 'pending'],
-    queryFn: () => apiFetch<Task[]>('/user/tasks/pending'),
+    queryFn: () => apiFetch<Submission[]>('/user/tasks/pending'),
     staleTime: 60 * 1000,
   });
 }
