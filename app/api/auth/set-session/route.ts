@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       httpOnly: true,
       path: '/',
       sameSite: 'lax',
-      secure: false, // localhost
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
   }
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       httpOnly: true,
       path: '/',
       sameSite: 'lax',
-      secure: false, // localhost
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
   }

@@ -21,6 +21,14 @@ export interface User {
   bio?: string;
   rank: Rank;
   score: number;
+  currentTeamId?: string | null;
+  teamRole?: string | null;
+  teamJoinedAt?: string | null;
+  team?: {
+    id: string;
+    name: string;
+    joinCode: string;
+  } | null;
   createdAt?: string;
 }
 
@@ -38,12 +46,16 @@ export interface CompleteProfilePayload {
 export interface Task {
   id: string;
   title: string;
+  shortDescription?: string;
   description: string;
+  requirements?: string;
   category: string;
   categoryName?: string;
   points: number;
+  bonusPoints?: number;
   difficulty: Difficulty;
   rankRequired?: Rank;
+  deadline?: string;
   isActive?: boolean;
   status?: SubmissionStatus | 'submitted';
   rubric?: string;
@@ -61,6 +73,7 @@ export interface Category {
 export interface Submission {
   id: string;
   taskId: string;
+  task?: Task;
   taskTitle?: string;
   userId: string;
   userName?: string;

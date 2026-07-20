@@ -14,7 +14,7 @@ export default function LoginPage() {
   const loginUrl = `/api/v1/auth/github`;
 
   return (
-    <div className="min-h-screen bg-off-white flex">
+    <div className="min-h-screen bg-transparent flex">
       {/* Left — Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8">
         <div className="w-full max-w-md text-center">

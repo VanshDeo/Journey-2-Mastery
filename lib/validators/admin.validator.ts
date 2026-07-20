@@ -5,11 +5,15 @@ import { z } from "zod";
  */
 export const createTaskSchema = z.object({
   title: z.string().min(3).max(200),
+  shortDescription: z.string().min(5).max(500),
   description: z.string().min(10),
+  requirements: z.string().optional(),
   category: z.string().min(1).max(100),
   difficulty: z.enum(["easy", "medium", "hard"]),
   rankRequired: z.enum(["Ronin", "Kenshi", "Samurai", "Shogun"]).default("Ronin"),
   points: z.number().int().min(0).max(1000),
+  bonusPoints: z.number().int().min(0).default(0),
+  deadline: z.preprocess((arg) => (arg === '' || arg == null ? undefined : new Date(arg as string)), z.date().optional()),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
@@ -19,11 +23,15 @@ export type CreateTaskInput = z.infer<typeof createTaskSchema>;
  */
 export const updateTaskSchema = z.object({
   title: z.string().min(3).max(200).optional(),
+  shortDescription: z.string().min(5).max(500).optional(),
   description: z.string().min(10).optional(),
+  requirements: z.string().optional(),
   category: z.string().min(1).max(100).optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
   rankRequired: z.enum(["Ronin", "Kenshi", "Samurai", "Shogun"]).optional(),
   points: z.number().int().min(0).max(1000).optional(),
+  bonusPoints: z.number().int().min(0).optional(),
+  deadline: z.preprocess((arg) => (arg === '' || arg == null ? null : new Date(arg as string)), z.date().nullable().optional()),
   isActive: z.boolean().optional(),
 });
 

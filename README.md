@@ -56,12 +56,12 @@ A full-stack gamified learning platform inspired by the Japanese martial arts ra
 │   Port 3001         │proxy │   Port 3000       │
 └─────────────────────┘      └──────┬───────────┘
                                     │
-                          ┌─────────┼─────────┐
-                          ▼         ▼         ▼
-                    ┌──────────┐ ┌───────┐ ┌────────┐
-                    │PostgreSQL│ │ Redis │ │BullMQ  │
-                    │  (DB)    │ │(Cache)│ │(Worker)│
-                    └──────────┘ └───────┘ └────────┘
+                          ┌─────────┴─────────┐
+                          ▼                   ▼
+                    ┌──────────┐         ┌─────────┐
+                    │PostgreSQL│         │  Redis  │
+                    │  (DB)    │         │ (Cache) │
+                    └──────────┘         └─────────┘
 ```
 
 | Layer | Technology | Purpose |
@@ -70,7 +70,7 @@ A full-stack gamified learning platform inspired by the Japanese martial arts ra
 | API | Hono 4 on Node.js | REST API, JWT auth, RBAC middleware |
 | Database | PostgreSQL 16 + Drizzle ORM | Relational data, migrations |
 | Cache | Redis 7 / Upstash Redis | Session blacklisting, rate limiting |
-| Queue | BullMQ | Background jobs (judge assignment, leaderboard recalc) |
+| Queue | Inline (MockQueue) | Background tasks executed inline (compatible with Vercel) |
 | Storage | S3-compatible (Supabase Storage) | File/image uploads |
 | Auth | GitHub OAuth 2.0 + JWT | Stateless authentication |
 
@@ -119,10 +119,9 @@ npm install
 # Run database migrations
 npm run db:push
 
-# Start all services (3 terminals)
+# Start all services (2 terminals)
 npm run dev           # Next.js frontend on :3001
-npm run dev:backend   # Hono API on :3000
-npm run worker:dev    # BullMQ background worker
+npm run dev:backend   # Hono API on :3000 (jobs run inline)
 ```
 
 ---
@@ -397,7 +396,7 @@ npx vitest
 
 ### Vercel (Frontend + API)
 
-The project supports Vercel deployment via the catch-all route at `app/api/v1/[[...route]]/route.ts` which mounts the Hono API using `hono/vercel`.
+The project supports Vercel deployment via the catch-all route at `app/api/v1/[[...route]]/route.ts` which mounts the Hono API using `hono/vercel`. Background queue jobs (e.g. judge assignment, leaderboard recalculation, notifications) run inline automatically on serverless functions, eliminating the need for a separate worker deployment.
 
 ```bash
 # Deploy to Vercel
@@ -417,7 +416,7 @@ Below is a reference of the available package scripts for managing the frontend,
 ### Services
 * **Start Frontend**: `npm run dev` (starts Next.js on port 3001)
 * **Start Hono Backend**: `npm run dev:backend` (starts Hono server on port 3000 with hot-reload)
-* **Start Background Worker**: `npm run worker:dev` (starts BullMQ job processor with hot-reload)
+* **Start Background Worker**: `npm run worker:dev` (optional; jobs run inline via `MockQueue` by default)
 
 ### Database Management (Drizzle Kit)
 * **Push schema changes directly**: `npm run db:push` (useful for quick prototyping)
@@ -429,7 +428,14 @@ Below is a reference of the available package scripts for managing the frontend,
 * **Build Frontend**: `npm run build`
 * **Build Backend**: `npm run build:backend`
 * **Run Backend (Prod)**: `npm run start:backend`
-* **Run Worker (Prod)**: `npm run worker:prod`
+* **Run Worker (Prod)**: `npm run worker:prod` (optional; background tasks execute inline in serverless/Vercel environments)
+
+---
+
+## 💡 Key Architectural Notes
+
+* **Next.js Middleware (`proxy.ts`)**: In this project's Next.js version, the traditional `middleware.ts` convention is deprecated in favor of `proxy.ts` in the project root. This file handles request proxying, session routing, and authentication checks.
+* **GET Fetch Caching**: To prevent Next.js from aggressively caching dynamic user sessions and state (which causes caching bugs such as redirect loops on the onboarding page), all client and proxy fetches to `/api/*` are configured with `cache: 'no-store'`.
 
 ---
 

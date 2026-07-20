@@ -11,10 +11,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import RankBadge from '@/components/shared/RankBadge';
 import NotificationBell from '@/components/shared/NotificationBell';
+import Image from 'next/image';
 import {
   LayoutDashboard, ListChecks, Send, Trophy, FileText, User, Bell, Settings,
   Scale, ClipboardList, Star, Users, Shield, BookOpen, BarChart3, Newspaper,
-  FileBarChart, LogOut, Menu, PanelLeft,
+  FileBarChart, LogOut, Menu, PanelLeft, Home,
 } from 'lucide-react';
 import type { Role } from '@/types/api.types';
 
@@ -22,12 +23,13 @@ interface NavItem {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  mobileOnly?: boolean;
 }
 
 const userNav: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Tasks', href: '/tasks', icon: ListChecks },
-  { label: 'Submissions', href: '/submissions', icon: Send },
+  { label: 'Submissions', href: '/submissions', icon: Send, mobileOnly: true },
   { label: 'Leaderboard', href: '/leaderboard', icon: Trophy },
   { label: 'Posts', href: '/posts', icon: FileText },
   { label: 'Profile', href: '/profile', icon: User },
@@ -97,8 +99,8 @@ export default function AppSidebar({ role, children }: AppSidebarProps) {
     <>
       {/* Logo */}
       <div className={cn('flex items-center gap-3 px-4 py-5', collapsed && 'justify-center')}>
-        <div className="w-8 h-8 rounded-md bg-japan-red flex items-center justify-center">
-          <span className="text-white font-serif font-bold text-sm">J</span>
+        <div className="w-10 h-10 rounded-md flex items-center justify-center shrink-0">
+          <Image src="/images/logo.png" alt="Logo" width={40} height={40} className="object-contain drop-shadow-sm" priority />
         </div>
         {!collapsed && (
           <span className="font-serif font-semibold text-primary-text text-sm">Journey to Mastery</span>
@@ -123,7 +125,8 @@ export default function AppSidebar({ role, children }: AppSidebarProps) {
                   active
                     ? 'bg-japan-red/10 text-japan-red border-r-2 border-japan-red'
                     : 'text-secondary-text hover:bg-secondary-bg hover:text-primary-text',
-                  collapsed && 'justify-center px-2'
+                  collapsed && 'justify-center px-2',
+                  item.mobileOnly && 'lg:hidden'
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -135,6 +138,12 @@ export default function AppSidebar({ role, children }: AppSidebarProps) {
       </ScrollArea>
 
       <Separator />
+      {/* Bamboo Decoration */}
+      {!collapsed && (
+        <div className="absolute bottom-[100px] left-0 right-0 pointer-events-none opacity-40 mix-blend-multiply">
+          <Image src="/images/bamboo.png" alt="Bamboo" width={256} height={200} className="w-full h-auto object-cover grayscale contrast-[2] brightness-[1.1]" />
+        </div>
+      )}
 
       {/* User Section */}
       {user && (
@@ -170,7 +179,7 @@ export default function AppSidebar({ role, children }: AppSidebarProps) {
   );
 
   return (
-    <div className="flex min-h-screen bg-off-white">
+    <div className="flex min-h-screen bg-transparent">
       {/* Desktop Sidebar */}
       <aside
         className={cn(
@@ -227,7 +236,14 @@ export default function AppSidebar({ role, children }: AppSidebarProps) {
             </div>
 
             <div className="flex-1" />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <Link href="/">
+                <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-secondary-bg text-secondary-text hover:text-primary-text transition-colors text-sm font-medium cursor-pointer">
+                  <Home className="h-4 w-4" />
+                  <span className="hidden sm:inline">Home</span>
+                </button>
+              </Link>
+              <div className="h-4 w-px bg-borders" />
               <NotificationBell />
             </div>
           </div>
