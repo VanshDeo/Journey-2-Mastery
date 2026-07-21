@@ -9,7 +9,18 @@ export function apiHandler(handler: (req: Request, ...args: any[]) => Promise<an
       console.error(error);
       const status = error.statusCode || 500;
       const message = error.message || "Internal Server Error";
-      return NextResponse.json({ success: false, error: { message, code: error.code } }, { status });
+      const cause = error.cause ? (error.cause.message || String(error.cause)) : undefined;
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: { 
+            message, 
+            cause,
+            code: error.code 
+          } 
+        }, 
+        { status }
+      );
     }
   };
 }
