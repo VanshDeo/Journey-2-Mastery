@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Cormorant_Garamond } from "next/font/google";
+import { Inter, Zilla_Slab, Permanent_Marker } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 
@@ -8,7 +8,7 @@ import localFont from "next/font/local";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const onari = localFont({
@@ -16,16 +16,24 @@ const onari = localFont({
   variable: "--font-onari-local",
 });
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+const zillaSlab = Zilla_Slab({
+  variable: "--font-zilla",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const marker = Permanent_Marker({
+  variable: "--font-marker",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
   title: "Journey to Mastery",
   description: "A 4-week coding program for developers to turn one idea into a live product.",
 };
+
+import QueryProvider from "@/components/providers/QueryProvider";
 
 export default function RootLayout({
   children,
@@ -35,12 +43,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${cormorant.variable} ${onari.variable} h-full antialiased`}
+      className={`${inter.variable} ${zillaSlab.variable} ${marker.variable} ${onari.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
-        <SmoothScroll>
-          {children}
-        </SmoothScroll>
+      <body className="min-h-screen flex flex-col font-sans">
+        <QueryProvider>
+          <SmoothScroll>
+            {children}
+          </SmoothScroll>
+        </QueryProvider>
       </body>
     </html>
   );

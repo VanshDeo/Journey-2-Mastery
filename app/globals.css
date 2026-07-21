@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@plugin "@tailwindcss/typography";
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -14,32 +14,43 @@
   --color-muted-text: #777777;
   --color-borders: #D8D0C8;
   --font-sans: var(--font-inter);
-  --font-serif: var(--font-cormorant);
+  --font-serif: var(--font-zilla);
+  --font-marker: var(--font-marker);
   --font-onari: var(--font-onari-local);
 
-  --animate-fade-in-slow: fade-in-slow 1.2s ease-in-out forwards;
-  --animate-slide-up-fade: slide-up-fade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+  /* Animation tokens */
+  --animate-in: enter 0.2s ease-out;
+  --animate-out: exit 0.15s ease-in;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
 
-@keyframes fade-in-slow {
-  from {
-    opacity: 0;
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-
-  to {
-    opacity: 1;
+  @keyframes exit {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(4px); }
   }
-}
-
-@keyframes slide-up-fade {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
   }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
 
@@ -49,8 +60,6 @@
 }
 
 @media (prefers-color-scheme: dark) {
-
-  /* We will keep the dark mode variables similar since it's a light-themed design, or override slightly. For now, sticking to the luxury light theme as default. */
   :root {
     --background: #F7F3EE;
     --foreground: #111111;
@@ -58,10 +67,23 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
   overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url('/images/ninja-pattern.png');
+  background-repeat: repeat;
+  background-size: 400px;
+  opacity: 0.25;
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Base custom utilities */
@@ -70,4 +92,100 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(216, 208, 200, 0.3);
+}
+
+/* Radix animations */
+@keyframes slideDownAndFade {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideLeftAndFade {
+  from { opacity: 0; transform: translateX(2px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideUpAndFade {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideRightAndFade {
+  from { opacity: 0; transform: translateX(-2px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Sidebar / layout transitions */
+.sidebar-transition {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D8D0C8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C0B8B0;
+}
+
+/* Staggered fade-in for lists */
+.stagger-fade > * {
+  animation: slide-up 0.4s ease-out both;
+}
+.stagger-fade > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-fade > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-fade > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-fade > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-fade > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-fade > *:nth-child(6) { animation-delay: 250ms; }
+
+/* Markdown Preview Code Block Customization */
+.prose pre,
+.prose-sm pre,
+.prose :where(pre) {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: var(--color-secondary-text) !important;
+  border: 1px solid var(--color-borders) !important;
+  border-radius: 6px !important;
+  padding: 12px 16px !important;
+  margin: 12px 0 !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+}
+
+.prose code,
+.prose-sm code,
+.prose :where(code),
+.prose pre code,
+.prose-sm pre code {
+  color: inherit !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  font-family: monospace !important;
+}
+
+/* Lenis Smooth Scroll Fix */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
 }

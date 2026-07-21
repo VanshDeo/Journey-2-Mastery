@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1783747377531,
+      "tag": "0000_elite_sentinels",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783789550893,
+      "tag": "0001_legal_agent_brand",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783826273918,
+      "tag": "0002_faithful_iron_fist",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783853963507,
+      "tag": "0003_demonic_blacklash",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784549082867,
+      "tag": "0004_massive_frightful_four",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784549376822,
+      "tag": "0005_flaky_morgan_stark",
+      "breakpoints": true
+    }
+  ]
+}
