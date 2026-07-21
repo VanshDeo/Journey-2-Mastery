@@ -5,7 +5,7 @@ import * as userService from "@/lib/services/user.service";
 
 export const GET = apiHandler(async (req: Request, { params }: { params: any }) => {
 
-  const taskId = params.taskId;
+  const taskId = (await params).taskId;
   const task = await userService.getTaskById(taskId);
   return NextResponse.json({ success: true, data:  task });
 

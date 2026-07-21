@@ -140,7 +140,7 @@ export default function AppSidebar({ role, children }: AppSidebarProps) {
       <Separator />
       {/* Bamboo Decoration */}
       {!collapsed && (
-        <div className="absolute bottom-[100px] left-0 right-0 pointer-events-none opacity-40 mix-blend-multiply">
+        <div className="absolute bottom-25 left-0 right-0 pointer-events-none opacity-40 mix-blend-multiply">
           <Image src="/images/bamboo.png" alt="Bamboo" width={256} height={200} className="w-full h-auto object-cover grayscale contrast-[2] brightness-[1.1]" />
         </div>
       )}

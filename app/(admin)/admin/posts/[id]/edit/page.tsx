@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { usePost, useUpdatePost } from '@/hooks/queries/usePosts';
+import { useAdminPost, useUpdatePost } from '@/hooks/queries/usePosts';
 import PostEditor from '@/components/admin/PostEditor';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import ErrorState from '@/components/shared/ErrorState';
@@ -13,7 +13,7 @@ export default function AdminPostEditPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const { data: post, isLoading, isError, error, refetch } = usePost(id);
+  const { data: post, isLoading, isError, error, refetch } = useAdminPost(id);
   const updatePost = useUpdatePost();
 
   if (isLoading) return <LoadingSkeleton variant="form" />;

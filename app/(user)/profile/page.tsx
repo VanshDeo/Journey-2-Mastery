@@ -97,7 +97,7 @@ export default function ProfilePage() {
           <CardContent className="p-6 sm:p-8 h-full flex flex-col justify-center">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8">
               <div className="relative shrink-0">
-                <Avatar className="h-28 w-28 border-[4px] border-japan-red/20 ring-4 ring-white shadow-lg bg-white">
+                <Avatar className="h-28 w-28 border-4 border-japan-red/20 ring-4 ring-white shadow-lg bg-white">
                   {displayUser.avatarUrl && <AvatarImage src={displayUser.avatarUrl} />}
                   <AvatarFallback className="text-4xl font-serif font-bold text-primary-text bg-secondary-bg">
                     {(displayUser.fullName || displayUser.username)?.charAt(0)?.toUpperCase()}
@@ -228,8 +228,8 @@ export default function ProfilePage() {
         <div className="space-y-6">
           {/* Profile Details */}
           <Card className="bg-[#FAF7F2] border-borders relative overflow-hidden">
-            <div className="absolute right-0 bottom-0 opacity-[0.03] pointer-events-none mix-blend-multiply w-[300px] h-[300px]">
-               <Image src="/images/samurai.png" alt="Decoration" fill className="object-contain object-right-bottom" />
+            <div className="absolute right-0 bottom-0 opacity-[0.03] pointer-events-none mix-blend-multiply w-75 h-75">
+               <Image src="/images/samurai.png" alt="Decoration" fill className="object-contain object-bottom-right" />
             </div>
             <CardHeader className="flex flex-row items-center justify-between pb-4 z-10 relative">
               <CardTitle className="flex items-center gap-2 text-lg font-serif">
@@ -352,10 +352,10 @@ export default function ProfilePage() {
                 {!badges || badges.length === 0 ? (
                   <>
                     <div className="relative w-16 h-16 rounded-full bg-secondary-bg flex items-center justify-center mb-4">
-                      <NinjaStarIcon className="h-8 w-8 text-primary-text/40 drop-shadow-sm transform rotate-[15deg]" />
+                      <NinjaStarIcon className="h-8 w-8 text-primary-text/40 drop-shadow-sm transform rotate-15" />
                     </div>
                     <h4 className="font-bold text-primary-text mb-1">No badges earned yet.</h4>
-                    <p className="text-xs text-secondary-text max-w-[200px] leading-relaxed">Complete tasks and achievements to earn badges!</p>
+                    <p className="text-xs text-secondary-text max-w-50 leading-relaxed">Complete tasks and achievements to earn badges!</p>
                   </>
                 ) : (
                   <div className="grid grid-cols-3 gap-4 w-full p-4">

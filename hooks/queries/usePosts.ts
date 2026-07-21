@@ -28,6 +28,14 @@ export function useAdminPosts() {
   });
 }
 
+export function useAdminPost(id: string) {
+  return useQuery<Post, Error>({
+    queryKey: ['admin', 'posts', id],
+    queryFn: () => apiFetch<Post>(`/admin/posts/${id}`),
+    enabled: !!id,
+  });
+}
+
 export function useCreatePost() {
   const queryClient = useQueryClient();
   return useMutation({

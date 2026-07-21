@@ -7,6 +7,7 @@ import { computeJudgeLoadScore } from "./assignment.service";
 import { NOTIFICATION_TYPES } from "../utils/constants";
 import type { SubmitReviewInput, EditReviewInput } from "../validators/judge.validator";
 import { checkAndPromoteUser, syncUserScore, syncTeamScore } from "./user.service";
+import { createNotification } from "./notification.service";
 
 const criteriaMap: Record<string, { name: string; maxScore: number }> = {
   codeQuality: { name: "Code Quality", maxScore: 25 },
@@ -16,7 +17,7 @@ const criteriaMap: Record<string, { name: string; maxScore: number }> = {
   creativity: { name: "Creativity", maxScore: 20 },
 };
 
-export function enrichReviewWithScores(review: any) {
+export function enrichReviewWithScores<T extends Record<string, unknown>>(review: T | null) {
   if (!review) return null;
   const breakdown = (review.scoreBreakdown as Record<string, number>) || {};
   const scores = Object.entries(criteriaMap).map(([id, info]) => ({
@@ -279,14 +280,13 @@ export async function submitReview(
   // Enqueue leaderboard recalculation
   // await leaderboardQueue.add("recalculate", {});
 
-  // Notify the submission owner
-  await notificationQueue.add("notify-review", {
+  // Enqueue notification for the user
+  await createNotification({
     userId: submission.userId,
-    type:
-      decision === "approved"
+    type: decision === "approved"
         ? NOTIFICATION_TYPES.SUBMISSION_APPROVED
         : NOTIFICATION_TYPES.SUBMISSION_REJECTED,
-    message: `Your submission has been ${decision}`,
+    message: `Your submission for task has been reviewed. Status: ${decision}`,
     relatedEntityId: submissionId,
   });
 

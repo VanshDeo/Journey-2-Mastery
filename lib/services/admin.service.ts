@@ -14,6 +14,7 @@ import { AUDIT_ACTIONS, NOTIFICATION_TYPES } from "../utils/constants";
 import { checkAndPromoteUser, syncUserScore, syncTeamScore } from "./user.service";
 import { env } from "../config/env";
 import { enrichReviewWithScores } from "./judge.service";
+import { createNotification } from "./notification.service";
 import type {
   CreateTaskInput,
   UpdateTaskInput,
@@ -407,7 +408,7 @@ export async function manualAssign(
     metadata: { judgeId: data.judgeId },
   });
 
-  await notificationQueue.add("notify-assigned", {
+  await createNotification({
     userId: data.judgeId,
     type: NOTIFICATION_TYPES.SUBMISSION_ASSIGNED,
     message: "You have been manually assigned a submission to review",
@@ -648,6 +649,14 @@ export async function getAdminPosts(cursor?: string, limit = 20) {
       limit,
     },
   };
+}
+
+export async function getAdminPostById(adminId: string, postId: string) {
+  const post = await db.query.communityPosts.findFirst({
+    where: eq(communityPosts.id, postId),
+  });
+  if (!post) throw notFound("Post", postId);
+  return post;
 }
 
 export async function updatePost(

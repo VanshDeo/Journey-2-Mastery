@@ -5,7 +5,7 @@ import * as teamService from "@/lib/services/team.service";
 
 export const GET = apiHandler(async (req: Request, { params }: { params: any }) => {
 
-  const teamId = params.id;
+  const teamId = (await params).id;
   const members = await teamService.getTeamMembers(teamId);
   return NextResponse.json({ success: true, data:  members });
 

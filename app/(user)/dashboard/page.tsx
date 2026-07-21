@@ -97,7 +97,7 @@ export default function UserDashboard() {
           
           <div className="relative w-full max-w-5xl mx-auto py-8">
             {/* Background Line (inset to match the center of the first and last nodes) */}
-            <div className="absolute top-[56px] left-12 right-12 z-0">
+            <div className="absolute top-14 left-12 right-12 z-0">
               <div className="w-full h-1 bg-borders -translate-y-1/2 rounded-full" />
               <div className="absolute top-0 left-0 h-1 bg-japan-red -translate-y-1/2 rounded-full transition-all duration-1000" style={{ width: `${rankProgressPercent}%` }} />
             </div>
@@ -170,7 +170,7 @@ export default function UserDashboard() {
             </div>
             <div>
               <p className="text-xs font-semibold text-muted-text uppercase tracking-wider">Tasks Available</p>
-              <p className="text-2xl font-bold text-primary-text">{data.tasksAvailable ?? '—'}</p>
+              <p className="text-2xl font-bold text-primary-text">{data.tasksAvailable ?? 0}</p>
               <p className="text-xs text-secondary-text mt-0.5">Start your next task</p>
             </div>
           </CardContent>
@@ -183,41 +183,43 @@ export default function UserDashboard() {
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
           {/* Continue Journey */}
-          <Card className="border-borders shadow-sm bg-white/80 overflow-hidden relative">
-            <CardHeader className="border-b border-borders/50 bg-card-bg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <NinjaStarIcon className="w-6 h-6 text-japan-red" />
-                  <CardTitle className="font-serif text-xl">Continue Your Journey</CardTitle>
+          {(data.tasksAvailable ?? 0) > 0 && (
+            <Card className="border-borders shadow-sm bg-white/80 overflow-hidden relative">
+              <CardHeader className="border-b border-borders/50 bg-card-bg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <NinjaStarIcon className="w-6 h-6 text-japan-red" />
+                    <CardTitle className="font-serif text-xl">Continue Your Journey</CardTitle>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-8 relative">
-              <div className="absolute left-0 top-0 bottom-0 w-2 bg-japan-red" />
-              <div className="flex flex-col md:flex-row items-center gap-8 pl-4">
-                 <div className="w-32 h-32 rounded-full bg-white border border-borders shadow-sm shrink-0 overflow-hidden relative">
-                    <Image src="/images/avatar-ronin.png" alt="Ronin" fill className="object-contain p-2" />
-                 </div>
-                 <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-serif text-2xl font-bold text-primary-text">{currentRankData.name}</h3>
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">{currentRankData.diff}</span>
-                    </div>
-                    <p className="text-sm text-secondary-text mb-4 max-w-lg leading-relaxed">
-                      {currentRankData.desc}
-                    </p>
-                    <div className="flex items-center gap-6">
-                      <span className="font-serif text-xl font-bold text-japan-red">{nextRank ? `${nextRank.pts} pts` : 'MAX'}</span>
-                      <Link href="/tasks">
-                        <button className="px-6 py-2 rounded-full border-2 border-japan-red text-japan-red font-bold hover:bg-japan-red hover:text-white transition-colors flex items-center gap-2 text-sm">
-                          View Tasks <ArrowRight className="w-4 h-4" />
-                        </button>
-                      </Link>
-                    </div>
-                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="p-8 relative">
+                <div className="absolute left-0 top-0 bottom-0 w-2 bg-japan-red" />
+                <div className="flex flex-col md:flex-row items-center gap-8 pl-4">
+                   <div className="w-32 h-32 rounded-full bg-white border border-borders shadow-sm shrink-0 overflow-hidden relative">
+                      <Image src="/images/avatar-ronin.png" alt="Ronin" fill className="object-contain p-2" />
+                   </div>
+                   <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-serif text-2xl font-bold text-primary-text">{currentRankData.name}</h3>
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">{currentRankData.diff}</span>
+                      </div>
+                      <p className="text-sm text-secondary-text mb-4 max-w-lg leading-relaxed">
+                        {currentRankData.desc}
+                      </p>
+                      <div className="flex items-center gap-6">
+                        <span className="font-serif text-xl font-bold text-japan-red">{nextRank ? `${nextRank.pts} pts` : 'MAX'}</span>
+                        <Link href="/tasks">
+                          <button className="px-6 py-2 rounded-full border-2 border-japan-red text-japan-red font-bold hover:bg-japan-red hover:text-white transition-colors flex items-center gap-2 text-sm">
+                            View Tasks <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </Link>
+                      </div>
+                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Tasks Overview */}
           <Card className="border-borders shadow-sm bg-white/80">
@@ -230,17 +232,18 @@ export default function UserDashboard() {
             <CardContent className="p-8 flex items-center gap-12">
                <div className="relative w-32 h-32 shrink-0">
                  {(() => {
-                    const available = data.tasksAvailable ?? 1;
+                    const available = data.tasksAvailable ?? 0;
                     const completed = data.tasksCompleted ?? 0;
                     const inProgress = submissions?.filter(sub => sub.status === 'pending' || sub.status === 'in_review').length ?? 0;
-                    const total = (available + completed + inProgress) || 1;
+                    const actualTotal = available + completed + inProgress;
+                    const totalForMath = actualTotal || 1;
                     
                     const r = 40;
                     const circ = 2 * Math.PI * r;
                     
-                    const availPct = available / total;
-                    const inProgPct = inProgress / total;
-                    const compPct = completed / total;
+                    const availPct = available / totalForMath;
+                    const inProgPct = inProgress / totalForMath;
+                    const compPct = completed / totalForMath;
 
                     const availRot = -90;
                     const inProgRot = availRot + (availPct * 360);
@@ -271,7 +274,7 @@ export default function UserDashboard() {
                           />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                           <span className="text-3xl font-bold text-primary-text">{total}</span>
+                           <span className="text-3xl font-bold text-primary-text">{actualTotal}</span>
                            <span className="text-xs font-semibold text-muted-text">Total</span>
                         </div>
                       </>
@@ -281,7 +284,7 @@ export default function UserDashboard() {
                <div className="flex-1 space-y-4">
                  <div className="flex items-center justify-between text-sm">
                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: '#111111' }} /> Available</div>
-                   <span className="font-bold text-lg">{data.tasksAvailable ?? 1}</span>
+                   <span className="font-bold text-lg">{data.tasksAvailable ?? 0}</span>
                  </div>
                  <div className="flex items-center justify-between text-sm">
                    <div className="flex items-center gap-3"><div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: '#D4AF37' }} /> In Progress</div>
@@ -374,12 +377,12 @@ export default function UserDashboard() {
           </Card>
 
           {/* Inspirational Banner */}
-          <Card className="overflow-hidden border-borders shadow-sm relative h-[200px] bg-white group cursor-pointer">
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
+          <Card className="overflow-hidden border-borders shadow-sm relative h-50 bg-white group cursor-pointer">
+            <div className="absolute inset-0 bg-linear-to-r from-white via-white/80 to-transparent z-10" />
             <div className="absolute inset-0 z-0 opacity-80 mix-blend-multiply flex justify-end">
-              <Image src="/images/ninja-kneeling.png" alt="Ninja" width={300} height={200} className="object-contain object-right-bottom group-hover:scale-105 transition-transform duration-700 grayscale contrast-125 brightness-110" />
+              <Image src="/images/ninja-kneeling.png" alt="Ninja" width={300} height={200} className="object-contain object-bottom-right group-hover:scale-105 transition-transform duration-700 grayscale contrast-125 brightness-110" />
             </div>
-            <div className="relative z-20 p-6 h-full flex flex-col justify-center max-w-[200px]">
+            <div className="relative z-20 p-6 h-full flex flex-col justify-center max-w-50">
               <h3 className="font-marker text-2xl font-bold text-primary-text leading-tight mb-2 uppercase">
                 DISCIPLINE TODAY, <br/><span className="text-japan-red">MASTERY TOMORROW.</span>
               </h3>

@@ -6,7 +6,7 @@ import * as adminService from "@/lib/services/admin.service";
 export const PATCH = apiHandler(async (req: Request, { params }: { params: any }) => {
 
   const admin = await requireAuth(req);
-  const reviewId = params.id;
+  const reviewId = (await params).id;
   const body = await req.json() as any;
   const review = await adminService.overrideReview(admin.id, reviewId, body);
   return NextResponse.json({ success: true, data:  review });

@@ -5,6 +5,7 @@ import { env } from "../config/env";
 import { logger } from "../logger";
 import { notFound } from "../utils/apiError";
 import { NOTIFICATION_TYPES } from "../utils/constants";
+import { createNotification } from "./notification.service";
 
 export interface JudgeLoadScore {
   judgeId: string;
@@ -152,7 +153,7 @@ export async function assignJudge(submissionId: string): Promise<boolean> {
   );
 
   // 8. Trigger notification
-  await notificationQueue.add("notify-judge-assigned", {
+  await createNotification({
     userId: selectedJudge.judgeId,
     type: NOTIFICATION_TYPES.SUBMISSION_ASSIGNED,
     message: `You have been assigned a new submission to review`,

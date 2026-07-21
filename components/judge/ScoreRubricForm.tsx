@@ -107,7 +107,7 @@ export default function ScoreRubricForm({
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
           placeholder="Provide detailed feedback for the submission..."
-          className="min-h-[120px]"
+          className="min-h-30"
         />
       </div>
 

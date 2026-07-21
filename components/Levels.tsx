@@ -119,15 +119,15 @@ export default function Levels() {
   }, []);
 
   return (
-    <section id="levels" ref={containerRef} className="py-32 bg-[var(--color-off-white)] relative z-20">
-      <div className="max-w-[1440px] w-full mx-auto px-12 md:px-24">
+    <section id="levels" ref={containerRef} className="py-32 bg-(--color-off-white) relative z-20">
+      <div className="max-w-360 w-full mx-auto px-12 md:px-24">
         
         {/* Section Title */}
         <div className="text-center mb-24 flex flex-col items-center">
-          <h2 ref={titleRef} className="font-heading text-3xl md:text-5xl text-[var(--color-primary-text)] tracking-widest whitespace-nowrap overflow-hidden">
-            THE 4 LEVELS OF <span className="text-[var(--color-japan-red)]">MASTERY</span>
+          <h2 ref={titleRef} className="font-heading text-3xl md:text-5xl text-(--color-primary-text) tracking-widest whitespace-nowrap overflow-hidden">
+            THE 4 LEVELS OF <span className="text-(--color-japan-red)">MASTERY</span>
           </h2>
-          <div className="w-12 h-[2px] bg-[var(--color-japan-red)] mt-8"></div>
+          <div className="w-12 h-0.5 bg-(--color-japan-red) mt-8"></div>
         </div>
 
         {/* Levels Grid */}
@@ -136,31 +136,31 @@ export default function Levels() {
             <div 
               key={level.title}
               ref={el => { if (el) cardsRef.current[i] = el; }}
-              className="group relative flex flex-col items-center text-center px-6 py-10 transition-all duration-500 hover:-translate-y-2 lg:border-r border-[var(--color-borders)] last:border-0"
+              className="group relative flex flex-col items-center text-center px-6 py-10 transition-all duration-500 hover:-translate-y-2 lg:border-r border-(--color-borders) last:border-0"
             >
               {/* Icon */}
-              <div className="text-[var(--color-japan-red)] mb-6 transition-transform duration-500 group-hover:scale-110">
+              <div className="text-(--color-japan-red) mb-6 transition-transform duration-500 group-hover:scale-110">
                 {level.icon}
               </div>
               
               {/* Level Number */}
-              <div className="text-xs font-semibold tracking-[0.2em] text-[var(--color-secondary-text)] mb-2">
+              <div className="text-xs font-semibold tracking-[0.2em] text-(--color-secondary-text) mb-2">
                 {level.level}
               </div>
               
               {/* Title */}
-              <h3 className="font-heading text-3xl tracking-widest text-[var(--color-primary-text)] mb-6 relative">
+              <h3 className="font-heading text-3xl tracking-widest text-(--color-primary-text) mb-6 relative">
                 {level.title}
               </h3>
               
               {/* Subtitle */}
-              <div className="text-sm font-medium text-[var(--color-primary-text)] mb-4 relative inline-block">
+              <div className="text-sm font-medium text-(--color-primary-text) mb-4 relative inline-block">
                 {level.subtitle}
-                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-[1px] bg-[var(--color-japan-red)] transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-px bg-(--color-japan-red) transition-all duration-300 group-hover:w-full"></span>
               </div>
               
               {/* Description */}
-              <p className="text-[var(--color-secondary-text)] text-sm leading-relaxed mt-4">
+              <p className="text-(--color-secondary-text) text-sm leading-relaxed mt-4">
                 {level.description}
               </p>
             </div>

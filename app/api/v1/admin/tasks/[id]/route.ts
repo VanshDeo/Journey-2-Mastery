@@ -6,7 +6,7 @@ import * as adminService from "@/lib/services/admin.service";
 export const PATCH = apiHandler(async (req: Request, { params }: { params: any }) => {
 
   const admin = await requireAuth(req);
-  const taskId = params.id;
+  const taskId = (await params).id;
   const body = await req.json() as any;
   const task = await adminService.updateTask(admin.id, taskId, body);
   return NextResponse.json({ success: true, data:  task });
@@ -16,7 +16,7 @@ export const PATCH = apiHandler(async (req: Request, { params }: { params: any }
 export const DELETE = apiHandler(async (req: Request, { params }: { params: any }) => {
 
   const admin = await requireAuth(req);
-  const taskId = params.id;
+  const taskId = (await params).id;
   await adminService.deleteTask(admin.id, taskId);
   return NextResponse.json({ success: true, data:  { message: "Task deactivated" } });
 

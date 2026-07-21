@@ -76,12 +76,12 @@ export default function ComingSoonSection({
   }, []);
 
   return (
-    <section id={id} className="py-24 bg-[var(--color-off-white)] relative z-20 overflow-hidden">
-      <div className="max-w-[1440px] w-full mx-auto px-12 md:px-24">
+    <section id={id} className="py-24 bg-(--color-off-white) relative z-20 overflow-hidden">
+      <div className="max-w-360 w-full mx-auto px-12 md:px-24">
         
         {/* Section Title */}
         <div className="mb-16">
-          <h2 ref={titleRef} className="font-heading text-4xl text-[var(--color-primary-text)] tracking-widest uppercase">
+          <h2 ref={titleRef} className="font-heading text-4xl text-(--color-primary-text) tracking-widest uppercase">
             {title}
           </h2>
         </div>
@@ -92,14 +92,14 @@ export default function ComingSoonSection({
           {/* Blurred Content Placeholder */}
           <div 
             ref={contentRef}
-            className="absolute inset-0 bg-[var(--color-card-bg)] border border-[var(--color-borders)] scale-105"
+            className="absolute inset-0 bg-(--color-card-bg) border border-(--color-borders) scale-105"
             style={{ filter: "blur(12px)" }}
           >
             {/* Abstract shapes to look like content when blurred */}
             <div className="grid grid-cols-3 gap-8 p-12 h-full opacity-50">
-              <div className="bg-[var(--color-secondary-bg)] w-full h-full rounded-sm"></div>
-              <div className="bg-[var(--color-secondary-bg)] w-full h-full rounded-sm"></div>
-              <div className="bg-[var(--color-secondary-bg)] w-full h-full rounded-sm"></div>
+              <div className="bg-(--color-secondary-bg) w-full h-full rounded-sm"></div>
+              <div className="bg-(--color-secondary-bg) w-full h-full rounded-sm"></div>
+              <div className="bg-(--color-secondary-bg) w-full h-full rounded-sm"></div>
             </div>
           </div>
 
@@ -107,7 +107,7 @@ export default function ComingSoonSection({
           <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/10">
             <span 
               ref={overlayRef}
-              className="font-heading text-5xl md:text-7xl text-[var(--color-japan-red)] tracking-[0.2em] font-light mix-blend-multiply"
+              className="font-heading text-5xl md:text-7xl text-(--color-japan-red) tracking-[0.2em] font-light mix-blend-multiply"
             >
               COMING SOON
             </span>

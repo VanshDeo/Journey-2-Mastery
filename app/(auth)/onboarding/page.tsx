@@ -110,7 +110,7 @@ export default function OnboardingPage() {
             <Textarea
               id="bio"
               placeholder="Tell us a bit about yourself..."
-              className="min-h-[80px]"
+              className="min-h-20"
               {...register('bio')}
             />
             {errors.bio && (

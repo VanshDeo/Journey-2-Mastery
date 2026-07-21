@@ -34,6 +34,11 @@ export function useCompleteProfile() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
+      // Synchronously update the cache so RoleGuard doesn't see stale data and redirect back
+      queryClient.setQueryData(['session'], (oldData: User | undefined) => {
+        if (!oldData) return oldData;
+        return { ...oldData, isProfileComplete: true };
+      });
       queryClient.invalidateQueries({ queryKey: ['session'] });
       router.push('/dashboard');
     },

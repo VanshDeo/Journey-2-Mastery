@@ -1,12 +1,14 @@
-import { eq, and, gt, sql, ilike, or, desc, asc, count, isNull } from "drizzle-orm";
+import { eq, and, gt, sql, ilike, or, desc, asc, count, isNull, inArray } from "drizzle-orm";
 import { db } from "../db/client";
-import { users, tasks, submissions, reviews, sessions, teams } from "../db/schema";
+import { users, tasks, submissions, reviews, sessions, teams, communityPosts } from "../db/schema";
 import { notFound, forbidden, conflict, AppError } from "../utils/apiError";
 import { isRankSufficient, STATUS_PENDING, RANK_ORDER, NOTIFICATION_TYPES } from "../utils/constants";
 import { logger } from "../logger";
 import type { CreateSubmissionInput, UpdateSubmissionInput, UpdateProfileInput, TaskFilterInput } from "../validators/user.validator";
 import type { Rank } from "../db/schema";
 import { enrichReviewWithScores } from "./judge.service";
+import { assignJudge } from "./assignment.service";
+import { createNotification } from "./notification.service";
 
 // ──────────────────────────────────────────────
 // Dashboard
@@ -34,7 +36,7 @@ export async function getDashboard(userId: string) {
   const [totalTasksResult] = await db
     .select({ count: count() })
     .from(tasks)
-    .where(and(eq(tasks.isActive, true), sql`${tasks.rankRequired} IN ${availableRanks}`));
+    .where(and(eq(tasks.isActive, true), inArray(tasks.rankRequired, availableRanks)));
 
   // Total score from approved reviews
   const [scoreResult] = await db
@@ -68,7 +70,7 @@ export async function getAvailableTasks(userId: string, filters: TaskFilterInput
 
   const conditions = [
     eq(tasks.isActive, true),
-    sql`${tasks.rankRequired} IN ${getAvailableRanks(user.rank)}`,
+    inArray(tasks.rankRequired, getAvailableRanks(user.rank)),
   ];
 
   if (filters.category) {
@@ -285,8 +287,9 @@ export async function createSubmission(userId: string, data: CreateSubmissionInp
     .returning();
 
   // Enqueue auto-assign job (doesn't block the request)
-  await assignJudgeQueue.add("assign-judge", {
-    submissionId: submission!.id,
+  // Replaced assignJudgeQueue with direct call for now.
+  assignJudge(submission!.id).catch(err => {
+    logger.error({ err, submissionId: submission!.id }, "Failed to auto-assign judge");
   });
 
   return submission!;
@@ -498,9 +501,9 @@ export async function updateProfile(userId: string, data: UpdateProfileInput) {
  * Get the list of ranks a user can access tasks for.
  * A user can access tasks at their level or below.
  */
-function getAvailableRanks(userRank: string): string[] {
-  const allRanks = ["Ronin", "Kenshi", "Samurai", "Shogun"];
-  const idx = allRanks.indexOf(userRank);
+function getAvailableRanks(userRank: string): Rank[] {
+  const allRanks: Rank[] = ["Ronin", "Kenshi", "Samurai", "Shogun"];
+  const idx = allRanks.indexOf(userRank as Rank);
   if (idx === -1) return ["Ronin"];
   return allRanks.slice(0, idx + 1);
 }
@@ -538,7 +541,7 @@ export async function checkAndPromoteUser(userId: string, taskId: string): Promi
       logger.info({ userId, oldRank: currentRank, newRank: nextRank }, "User promoted to next rank");
 
       // Notify user
-      await notificationQueue.add("notify-rank-up", {
+      await createNotification({
         userId,
         type: NOTIFICATION_TYPES.RANK_UP,
         message: `Congratulations! You have completed the challenge and ranked up to ${nextRank}!`,
@@ -562,9 +565,9 @@ export async function getSettings(userId: string) {
   return user.settings;
 }
 
-export async function updateSettings(userId: string, data: any) {
+export async function updateSettings(userId: string, data: Record<string, unknown>) {
   const currentSettings = await getSettings(userId);
-  const newSettings = { ...((currentSettings as any) || {}), ...data };
+  const newSettings = { ...((currentSettings as Record<string, unknown>) || {}), ...data };
 
   const [updated] = await db
     .update(users)
@@ -642,4 +645,45 @@ export async function syncTeamScore(teamId: string) {
   await db.update(teams).set({ score: newScore }).where(eq(teams.id, teamId));
   logger.info({ teamId, score: newScore }, "Synchronized team score");
   return newScore;
+}
+
+// ──────────────────────────────────────────────
+// Community Posts
+// ──────────────────────────────────────────────
+
+/**
+ * List published community posts for users.
+ */
+export async function getPublishedPosts(cursor?: string, limit = 20) {
+  const conditions = [eq(communityPosts.isPublished, true)];
+  if (cursor) conditions.push(gt(communityPosts.id, cursor));
+
+  const result = await db.query.communityPosts.findMany({
+    where: and(...conditions),
+    orderBy: [desc(communityPosts.createdAt)],
+    limit: limit + 1,
+  });
+
+  const hasMore = result.length > limit;
+  const items = hasMore ? result.slice(0, limit) : result;
+
+  return {
+    items,
+    meta: {
+      nextCursor: hasMore && items[items.length - 1] ? items[items.length - 1]!.id : null,
+      limit,
+    },
+  };
+}
+
+/**
+ * Get a single published community post.
+ */
+export async function getPublishedPostById(postId: string) {
+  const post = await db.query.communityPosts.findFirst({
+    where: and(eq(communityPosts.id, postId), eq(communityPosts.isPublished, true)),
+  });
+
+  if (!post) throw notFound("Post", postId);
+  return post;
 }

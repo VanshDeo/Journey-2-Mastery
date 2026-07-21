@@ -100,28 +100,28 @@ export default function Hero() {
   }, []);
 
   return (
-    <section ref={containerRef} id="home" className="relative h-screen w-full flex items-center overflow-hidden bg-[var(--color-off-white)]">
+    <section ref={containerRef} id="home" className="relative h-screen w-full flex items-center overflow-hidden bg-(--color-off-white)">
       {/* Intro Overlay */}
       <div 
         ref={welcomeRef}
-        className="absolute inset-0 z-50 flex items-center justify-center bg-[var(--color-off-white)]"
+        className="absolute inset-0 z-50 flex items-center justify-center bg-(--color-off-white)"
       >
-        <h1 className="font-heading text-3xl md:text-5xl tracking-widest text-[var(--color-primary-text)] font-light">
-          Are you ready for your <span className="font-onari font-normal tracking-normal text-[var(--color-japan-red)]">Journey to Mastery</span>?
+        <h1 className="font-heading text-3xl md:text-5xl tracking-widest text-(--color-primary-text) font-light">
+          Are you ready for your <span className="font-onari font-normal tracking-normal text-(--color-japan-red)">Journey to Mastery</span>?
         </h1>
       </div>
 
       <Sakura />
 
-      <div className="max-w-[1440px] w-full mx-auto px-12 md:px-24 h-full flex pt-24 pb-12 relative z-10">
+      <div className="max-w-360 w-full mx-auto px-12 md:px-24 h-full flex pt-24 pb-12 relative z-10">
         
         {/* Left: Text Content (45%) */}
         <div ref={heroContentRef} className="w-full md:w-[45%] h-full flex flex-col justify-center opacity-0">
-          <p className="hero-sub text-sm tracking-[0.2em] text-[var(--color-secondary-text)] mb-4">
+          <p className="hero-sub text-sm tracking-[0.2em] text-(--color-secondary-text) mb-4">
             JOURNEY TO
           </p>
           
-          <h1 className="font-heading text-6xl md:text-8xl lg:text-[110px] leading-none mb-8 text-[var(--color-primary-text)]">
+          <h1 className="font-heading text-6xl md:text-8xl lg:text-[110px] leading-none mb-8 text-(--color-primary-text)">
             {"MASTERY".split("").map((char, i) => (
               <span 
                 key={i} 
@@ -133,19 +133,19 @@ export default function Hero() {
             ))}
           </h1>
           
-          <h2 className="hero-sub font-heading text-xl md:text-2xl text-[var(--color-japan-red)] font-semibold tracking-widest mb-6">
+          <h2 className="hero-sub font-heading text-xl md:text-2xl text-(--color-japan-red) font-semibold tracking-widest mb-6">
             BUILD. LAUNCH. IMPACT.
           </h2>
           
-          <p className="hero-sub text-[var(--color-secondary-text)] max-w-md text-lg leading-relaxed mb-10">
+          <p className="hero-sub text-(--color-secondary-text) max-w-md text-lg leading-relaxed mb-10">
             A 4-week coding program for beginners and developers to turn one idea into a live product with real users.
           </p>
           
           <Link
             href={user ? "/dashboard" : "/login"}
-            className="hero-sub group relative flex items-center gap-4 px-8 py-4 border border-[var(--color-japan-red)] text-[var(--color-japan-red)] font-medium tracking-widest text-sm overflow-hidden w-max"
+            className="hero-sub group relative flex items-center gap-4 px-8 py-4 border border-(--color-japan-red) text-(--color-japan-red) font-medium tracking-widest text-sm overflow-hidden w-max"
           >
-            <span className="absolute inset-0 bg-[var(--color-japan-red)] translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-400 ease-out z-0"></span>
+            <span className="absolute inset-0 bg-(--color-japan-red) translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-400 ease-out z-0"></span>
             <span className="relative z-10 group-hover:text-white transition-colors duration-400">BEGIN YOUR JOURNEY</span>
             <ArrowRight className="relative z-10 w-4 h-4 group-hover:translate-x-2 group-hover:text-white transition-all duration-400" />
           </Link>
@@ -162,13 +162,13 @@ export default function Hero() {
             <div className="absolute inset-0 bg-[url('/hero-image-1.png')] bg-cover bg-center mix-blend-multiply opacity-90 filter contrast-110 saturate-50" />
             
             {/* Left side blur & fade to blend with the text section */}
-            <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[var(--color-off-white)] via-[var(--color-off-white)]/80 to-transparent z-5" />
+            <div className="absolute inset-y-0 left-0 w-1/3 bg-linear-to-r from-(--color-off-white) via-off-white/80 to-transparent z-5" />
             
             {/* Right side fade to blend in the background colour with no straight edges */}
-            <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-[var(--color-off-white)] via-[var(--color-off-white)]/80 to-transparent z-5" />
+            <div className="absolute inset-y-0 right-0 w-1/3 bg-linear-to-l from-(--color-off-white) via-off-white/80 to-transparent z-5" />
             
             {/* Top side fade to blend in the background colour */}
-            <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-[var(--color-off-white)] via-[var(--color-off-white)]/80 to-transparent z-5" />
+            <div className="absolute inset-x-0 top-0 h-1/4 bg-linear-to-b from-(--color-off-white) via-off-white/80 to-transparent z-5" />
             
             {/* SVG Displacement for Water Ripple */}
             <svg className="hidden">
@@ -179,22 +179,22 @@ export default function Hero() {
             </svg>
             
             {/* Water overlay with ripple effect */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[var(--color-off-white)] to-transparent z-10" style={{ filter: "url(#ripple)" }} />
-            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[var(--color-off-white)] via-[var(--color-off-white)]/50 to-transparent z-10" />
+            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-linear-to-t from-(--color-off-white) to-transparent z-10" style={{ filter: "url(#ripple)" }} />
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-linear-to-t from-(--color-off-white) via-off-white/50 to-transparent z-10" />
           </div>
 
           {/* Vertical Japanese Text */}
           <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center z-10">
-            <div className="relative font-heading text-4xl text-[var(--color-dark-red)] writing-vertical-rl tracking-widest h-64">
+            <div className="relative font-heading text-4xl text-(--color-dark-red) writing-vertical-rl tracking-widest h-64">
               <div ref={jpTextRef} className="absolute inset-0 opacity-100 flex justify-center writing-vertical-rl" style={{ writingMode: 'vertical-rl'}}>
                 開発者コミュニティ
               </div>
-              <div ref={enTextRef} className="absolute inset-0 opacity-0 flex justify-center text-xl tracking-[0.3em] font-sans text-[var(--color-secondary-text)] writing-vertical-rl whitespace-nowrap" style={{ writingMode: 'vertical-rl'}}>
+              <div ref={enTextRef} className="absolute inset-0 opacity-0 flex justify-center text-xl tracking-[0.3em] font-sans text-(--color-secondary-text) writing-vertical-rl whitespace-nowrap" style={{ writingMode: 'vertical-rl'}}>
                 DEVELOPER COMMUNITY
               </div>
             </div>
             {/* Seal Icon */}
-            {/* <div className="mt-8 border-2 border-[var(--color-dark-red)] p-1 w-12 h-12 flex items-center justify-center text-[var(--color-dark-red)]">
+            {/* <div className="mt-8 border-2 border-(--color-dark-red) p-1 w-12 h-12 flex items-center justify-center text-(--color-dark-red)">
               <span className="font-heading text-xs text-center leading-tight">魂<br/>決</span>
             </div> */}
           </div>

@@ -6,8 +6,8 @@ import * as teamService from "@/lib/services/team.service";
 export const DELETE = apiHandler(async (req: Request, { params }: { params: any }) => {
 
   const user = await requireAuth(req);
-  const teamId = params.id;
-  const targetMemberId = params.userId;
+  const teamId = (await params).id;
+  const targetMemberId = (await params).userId;
   await teamService.removeTeamMember(user.id, teamId, targetMemberId);
   return NextResponse.json({ success: true, data:  { message: "Member removed successfully" } });
 

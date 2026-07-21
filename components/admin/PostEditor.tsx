@@ -130,7 +130,7 @@ export default function PostEditor({ initialData, onSubmit, isPending = false, s
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Write the post content..."
-          className="min-h-[160px]"
+          className="min-h-40"
         />
       </div>
 

@@ -91,7 +91,7 @@ export default function CommentThread({ submissionId }: CommentThreadProps) {
                 }
               }}
               placeholder="Add a comment..."
-              className="min-h-[40px] h-10 resize-none"
+              className="min-h-10 h-10 resize-none"
               rows={1}
             />
             <Button

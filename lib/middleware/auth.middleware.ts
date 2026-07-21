@@ -7,12 +7,23 @@ import { unauthorized } from "../utils/apiError";
 
 export async function requireAuth(req: Request): Promise<AuthUser> {
   const authHeader = req.headers.get("Authorization");
+  let token = "";
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    throw unauthorized("Missing or invalid Authorization header");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.slice(7);
+  } else {
+    const cookieHeader = req.headers.get("cookie");
+    if (cookieHeader) {
+      const cookies = Object.fromEntries(cookieHeader.split(";").map(c => c.trim().split("=")));
+      if (cookies.accessToken) {
+        token = cookies.accessToken;
+      }
+    }
   }
 
-  const token = authHeader.slice(7);
+  if (!token) {
+    throw unauthorized("Missing or invalid Authorization header or cookie");
+  }
 
   let payload: JWTPayload;
   try {

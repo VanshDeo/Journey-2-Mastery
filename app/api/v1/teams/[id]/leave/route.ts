@@ -6,8 +6,8 @@ import * as teamService from "@/lib/services/team.service";
 export const POST = apiHandler(async (req: Request, { params }: { params: any }) => {
 
   const user = await requireAuth(req);
-  const teamId = params.id;
-  const result = await teamService.regenerateJoinCode(user.id, teamId);
-  return NextResponse.json({ success: true, data:  result });
+  const teamId = (await params).id;
+  await teamService.leaveTeam(user.id, teamId);
+  return NextResponse.json({ success: true, data:  { message: "Left team successfully" } });
 
 });
